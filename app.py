@@ -1,7 +1,6 @@
 import csv
 import io
 import os
-import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
@@ -94,7 +93,7 @@ def role_required(*roles):
 def current_user():
     if "user_id" not in session:
         return None
-    return query_db("SELECT * FROM users WHERE id = ?", (session["user_id"],), one=True)
+    return query_db("SELECT * FROM users WHERE id = %s", (session["user_id"],), one=True)
 
 
 def get_rank(amount):
@@ -111,7 +110,7 @@ def get_rank(amount):
 
 def verified_total(user_id):
     row = query_db(
-        "SELECT COALESCE(SUM(amount), 0) AS total FROM donations WHERE user_id = ? AND status = 'approved'",
+        "SELECT COALESCE(SUM(amount), 0) AS total FROM donations WHERE user_id = %s AND status = 'approved'",
         (user_id,), one=True,
     )
     return row["total"]
@@ -136,7 +135,7 @@ def login():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
 
-        user = query_db("SELECT * FROM users WHERE username = ?", (username,), one=True)
+        user = query_db("SELECT * FROM users WHERE username = %s", (username,), one=True)
 
         if user is None or not check_password_hash(user["password_hash"], password):
             flash("Invalid username or password.", "error")
@@ -173,13 +172,13 @@ def dashboard():
     rank_label, amount, next_floor, progress = get_rank(total)
 
     my_donations = query_db(
-        "SELECT * FROM donations WHERE user_id = ? ORDER BY submitted_at DESC", (user["id"],)
+        "SELECT * FROM donations WHERE user_id = %s ORDER BY submitted_at DESC", (user["id"],)
     )
 
     tasks = query_db("SELECT * FROM tasks ORDER BY deadline ASC")
     completed_task_ids = {
         row["task_id"] for row in query_db(
-            "SELECT task_id FROM task_completions WHERE user_id = ?", (user["id"],)
+            "SELECT task_id FROM task_completions WHERE user_id = %s", (user["id"],)
         )
     }
 
@@ -235,7 +234,7 @@ def submit_donation():
 
     execute_db(
         """INSERT INTO donations (user_id, donor_name, amount, drive_link, status)
-           VALUES (?, ?, ?, ?, 'pending')""",
+           VALUES (%s, %s, %s, %s, 'pending')""",
         (session["user_id"], donor_name, amount_val, drive_link),
     )
     flash("Donation submitted for verification!", "success")
@@ -246,12 +245,12 @@ def submit_donation():
 @role_required("intern", "ambassador")
 def complete_task(task_id):
     existing = query_db(
-        "SELECT id FROM task_completions WHERE task_id = ? AND user_id = ?",
+        "SELECT id FROM task_completions WHERE task_id = %s AND user_id = %s",
         (task_id, session["user_id"]), one=True,
     )
     if existing is None:
         execute_db(
-            "INSERT INTO task_completions (task_id, user_id) VALUES (?, ?)",
+            "INSERT INTO task_completions (task_id, user_id) VALUES (%s, %s)",
             (task_id, session["user_id"]),
         )
         flash("Task marked as complete. Great work!", "success")
@@ -304,8 +303,8 @@ def review_donation(donation_id):
         return redirect(url_for("admin_panel"))
 
     execute_db(
-        """UPDATE donations SET status = ?, admin_note = ?, reviewed_at = ?
-           WHERE id = ?""",
+        """UPDATE donations SET status = %s, admin_note = %s, reviewed_at = %s
+           WHERE id = %s""",
         (decision, note if decision == "rejected" else None, datetime.now(), donation_id),
     )
     flash(f"Donation #{donation_id} marked as {decision}.", "success")
@@ -354,14 +353,14 @@ def create_user():
         flash("Please fill in all required fields correctly.", "error")
         return redirect(url_for("admin_panel"))
 
-    existing = query_db("SELECT id FROM users WHERE username = ?", (username,), one=True)
+    existing = query_db("SELECT id FROM users WHERE username = %s", (username,), one=True)
     if existing:
         flash("That username already exists.", "error")
         return redirect(url_for("admin_panel"))
 
     execute_db(
         """INSERT INTO users (username, password_hash, role, full_name, email, phone, tenure_start, tenure_end)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
         (username, generate_password_hash(password), role, full_name, email, phone, tenure_start, tenure_end),
     )
     flash(f"Account created for {full_name}.", "success")
@@ -380,7 +379,7 @@ def create_task():
         return redirect(url_for("admin_panel"))
 
     execute_db(
-        "INSERT INTO tasks (title, description, deadline, created_by) VALUES (?, ?, ?, ?)",
+        "INSERT INTO tasks (title, description, deadline, created_by) VALUES (%s, %s, %s, %s)",
         (title, description, deadline, session["user_id"]),
     )
     flash("New mission published to all volunteers.", "success")
@@ -399,7 +398,7 @@ def create_resource():
         return redirect(url_for("admin_panel"))
 
     execute_db(
-        "INSERT INTO resources (title, category, link) VALUES (?, ?, ?)",
+        "INSERT INTO resources (title, category, link) VALUES (%s, %s, %s)",
         (title, category, link),
     )
     flash("Resource added to the library.", "success")
