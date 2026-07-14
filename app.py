@@ -155,15 +155,26 @@ def edit_user(user_id):
 @admin_required
 def delete_user(user_id):
     try:
-        # 1. Delete connected records first (prevents Foreign Key crash)
-        supabase.table('task_completions').delete().eq('user_id', user_id).execute()
-        
-        # 2. Now delete the actual user
+        # 1. Clear task completions (ignores if it fails due to schema mismatch)
+        try:
+            supabase.table('task_completions').delete().eq('user_id', user_id).execute()
+        except Exception:
+            pass 
+            
+        # 2. Clear donations (ignores if it fails due to schema mismatch)
+        try:
+            supabase.table('donations').delete().eq('user_id', user_id).execute()
+        except Exception:
+            pass
+
+        # 3. Now delete the actual user
         supabase.table('users').delete().eq('id', user_id).execute()
         
         flash("User deleted successfully!", "success")
     except Exception as e:
-        flash("Error deleting user. Check database permissions.", "error")
+        # This will now print the EXACT Postgres error right onto your screen
+        flash(f"Database Blocked Deletion: {str(e)}", "error")
+        
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/missions/delete/<int:task_id>')
