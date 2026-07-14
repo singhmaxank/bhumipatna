@@ -3,299 +3,340 @@
 
 {% block content %}
 <style>
-    /* Override base.html styles specifically for the login page to create a full-screen standalone card */
-    .top-nav { display: none !important; }
-    footer { display: none !important; }
+    /* --- CSS RESET JUST FOR LOGIN PAGE --- */
+    .top-nav, footer { display: none !important; }
     
-    body, html { height: 100%; margin: 0; }
-    
+    body, html {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-color: #e2e8f0;
+        overflow: hidden; /* Prevents scrolling on desktop */
+    }
+
     .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 1.5rem;
-        background-color: var(--bg-main);
-        max-width: 100%;
+        background-color: #e2e8f0;
     }
 
-    /* --- The Split Card Container --- */
-    .login-split-card {
+    /* --- THE SPLIT CARD --- */
+    .auth-container {
         display: flex;
-        width: 100%;
-        max-width: 950px;
+        width: 1000px;
+        max-width: 95%;
+        height: 600px;
         background: #ffffff;
         border-radius: 24px;
-        overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(5, 150, 105, 0.25);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        position: relative;
     }
 
-    /* --- LEFT SIDE: Brand & NGO Theme --- */
-    .login-brand-side {
-        flex: 1;
+    /* --- LEFT PANEL (Green Theme) --- */
+    .auth-left {
+        flex: 0 0 42%;
         background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
-        padding: 4rem 3rem;
-        color: #ffffff;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        padding: 3rem;
+        color: #ffffff;
         text-align: center;
         position: relative;
-        overflow: hidden;
-    }
-    
-    /* Geometric background shapes imitating the reference image */
-    .login-brand-side::before {
-        content: '';
-        position: absolute;
-        top: -50%; left: -50%; width: 200%; height: 200%;
-        background: linear-gradient(45deg, rgba(255,255,255,0.03) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.03) 75%, transparent 75%, transparent);
-        background-size: 150px 150px;
-        transform: rotate(-15deg);
-        pointer-events: none;
-        z-index: 0;
+        z-index: 1;
     }
 
-    .login-brand-logo {
-        height: 70px;
-        margin-bottom: 2rem;
+    .auth-left h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #ffffff;
+        opacity: 0.9;
+    }
+
+    .auth-logo {
+        width: 85px;
+        margin-bottom: 0.75rem;
         filter: brightness(0) invert(1);
-        z-index: 1;
     }
-    
-    .login-brand-text {
-        font-size: 0.95rem;
-        line-height: 1.7;
+
+    .auth-brand {
+        font-size: 1.75rem;
+        font-weight: 800;
         margin-bottom: 2.5rem;
-        font-weight: 500;
-        opacity: 0.95;
-        z-index: 1;
+        letter-spacing: -0.5px;
     }
 
-    .btn-explore {
+    .auth-desc {
+        font-size: 0.85rem;
+        line-height: 1.6;
+        font-weight: 400;
+        opacity: 0.85;
+    }
+
+    /* --- RIGHT PANEL (White Form) --- */
+    .auth-right {
+        flex: 1;
         background: #ffffff;
-        color: #064e3b;
-        padding: 0.85rem 2.5rem;
-        border-radius: 30px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        text-decoration: none;
-        transition: all 0.3s;
-        z-index: 1;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
-    .btn-explore:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-        background: #f0fdf4;
-    }
-
-    /* --- RIGHT SIDE: Login Form --- */
-    .login-form-side {
-        flex: 1.2;
-        padding: 4rem 4rem;
+        position: relative;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        background: #ffffff;
+        padding: 4rem 5rem;
+        border-top-right-radius: 24px;
+        border-bottom-right-radius: 24px;
     }
 
-    .login-form-side h2 {
-        font-size: 2.5rem;
+    /* --- CLOUD / WAVE DIVIDER (From 3rd Screenshot) --- */
+    .cloud-divider {
+        position: absolute;
+        left: -60px; /* Pulls it over the green side */
+        top: 0;
+        height: 100%;
+        width: 61px;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .auth-title {
+        font-size: 1.75rem;
         font-weight: 800;
-        color: #064e3b;
-        margin-bottom: 0.25rem;
+        color: #1e293b;
+        margin-bottom: 2.5rem;
+    }
+
+    /* --- MINIMALIST UNDERLINE INPUTS --- */
+    .auth-form-group {
+        margin-bottom: 2rem;
+        position: relative;
     }
     
-    .login-subtitle {
-        color: #64748b;
-        font-size: 0.95rem;
-        margin-bottom: 2.5rem;
-        font-weight: 500;
+    .auth-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
     }
 
-    .login-form-group {
-        margin-bottom: 1.25rem;
-    }
-
-    /* Dark theme inputs like the reference image */
-    .login-input {
+    .auth-input {
         width: 100%;
-        padding: 1.1rem 1.25rem;
-        background: #064e3b;
-        border: 2px solid #064e3b;
-        border-radius: 12px;
-        color: #ffffff;
-        font-size: 1rem;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    .login-input::placeholder {
-        color: rgba(255,255,255,0.6);
-    }
-    .login-input:focus {
+        border: none;
+        border-bottom: 2px solid #e2e8f0;
+        padding: 0.5rem 0;
+        font-size: 0.95rem;
+        color: #1e293b;
+        background: transparent;
+        transition: all 0.3s ease;
         outline: none;
-        border-color: #10b981;
-        background: #047857;
-        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+        font-family: 'Inter', sans-serif;
     }
 
-    .login-options {
+    .auth-input:focus {
+        border-bottom-color: #059669;
+    }
+
+    .auth-input::placeholder {
+        color: #cbd5e1;
+        font-weight: 400;
+    }
+
+    /* The little checkmark graphic on the right of inputs */
+    .auth-input:focus + .input-check {
+        opacity: 1;
+        color: #059669;
+    }
+    .input-check {
+        position: absolute;
+        right: 0;
+        bottom: 8px;
+        opacity: 0.3;
+        transition: all 0.3s ease;
+    }
+
+    /* --- CHECKBOX & OPTIONS --- */
+    .auth-options {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 2.5rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #475569;
+        font-size: 0.8rem;
     }
 
-    .login-checkbox {
+    .auth-checkbox {
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        color: #64748b;
+        font-weight: 500;
         cursor: pointer;
     }
-    
-    .login-checkbox input {
+
+    .auth-checkbox input {
         accent-color: #059669;
         width: 16px;
         height: 16px;
         cursor: pointer;
     }
 
-    .forgot-link {
-        color: #475569;
+    .auth-forgot {
+        color: #64748b;
         text-decoration: none;
+        font-weight: 600;
         transition: color 0.2s;
     }
-    .forgot-link:hover {
-        color: #059669;
+    .auth-forgot:hover { color: #059669; }
+
+    /* --- PILL SHAPED BUTTONS --- */
+    .auth-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
     }
 
-    .btn-submit {
-        width: 100%;
-        padding: 1.1rem;
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    .auth-btn {
+        padding: 0.75rem 2.5rem;
+        border-radius: 50px; /* Pill shape */
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .btn-primary {
+        background: #059669;
         color: #ffffff;
         border: none;
-        border-radius: 12px;
-        font-size: 1.05rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s;
-        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
     }
-    .btn-submit:hover {
+    .btn-primary:hover {
+        background: #047857;
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(5, 150, 105, 0.3);
+        box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
     }
 
-    /* --- MOBILE RESPONSIVENESS --- */
-    @media (max-width: 768px) {
-        .login-split-card {
-            flex-direction: column;
-        }
-        .login-brand-side {
-            padding: 3rem 2rem;
-        }
-        .login-form-side {
-            padding: 2.5rem 1.5rem;
-        }
-        .login-brand-text {
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
+    .btn-outline {
+        background: transparent;
+        color: #475569;
+        border: 2px solid #e2e8f0;
     }
-    
-    /* --- MODERN POPUP MODAL --- */
+    .btn-outline:hover {
+        border-color: #059669;
+        color: #059669;
+        background: #f0fdf4;
+    }
+
+    /* --- POPUP MODAL --- */
     .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 999;
-        align-items: center;
-        justify-content: center;
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.6); z-index: 999; align-items: center; justify-content: center;
         backdrop-filter: blur(4px);
     }
     .modal-box {
-        background: white;
-        padding: 2.5rem 2rem;
-        border-radius: 16px;
-        text-align: center;
-        max-width: 340px;
-        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        background: white; padding: 2.5rem 2rem; border-radius: 20px;
+        text-align: center; max-width: 340px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
         animation: popIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    @keyframes popIn {
-        from { transform: scale(0.9); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-    .modal-box h4 {
-        color: #064e3b;
-        margin-bottom: 0.75rem;
-        font-size: 1.3rem;
-    }
-    .modal-box p {
-        color: #475569;
-        font-size: 0.95rem;
-        line-height: 1.5;
-        margin-bottom: 1.75rem;
-        font-weight: 500;
-    }
+    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    
+    .modal-box h4 { color: #064e3b; margin-bottom: 0.75rem; font-size: 1.25rem; font-weight: 800; }
+    .modal-box p { color: #475569; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.75rem; font-weight: 500; }
     .modal-btn {
-        background: #059669;
-        color: white;
-        padding: 0.75rem 2rem;
-        border-radius: 8px;
-        border: none;
-        font-weight: 700;
-        font-size: 0.95rem;
-        cursor: pointer;
-        width: 100%;
-        transition: background 0.2s;
+        background: #059669; color: white; padding: 0.75rem 2rem; border-radius: 50px;
+        border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; width: 100%; transition: background 0.2s;
     }
-    .modal-btn:hover {
-        background: #047857;
+    .modal-btn:hover { background: #047857; }
+
+    /* --- FLASH MESSAGES OVERRIDE --- */
+    .auth-alert {
+        padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.5rem;
+        font-size: 0.85rem; font-weight: 600; text-align: center;
+    }
+    .auth-alert-error { background: #fee2e2; color: #ef4444; }
+    .auth-alert-success { background: #d1fae5; color: #059669; }
+
+    /* --- MOBILE RESPONSIVENESS --- */
+    @media (max-width: 850px) {
+        body { overflow: auto; height: auto; }
+        .main-content { min-height: 100vh; padding: 2rem 1rem !important; }
+        .auth-container { flex-direction: column; height: auto; border-radius: 20px; }
+        .auth-left { padding: 3rem 2rem; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 11; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .auth-right { padding: 3rem 2rem; border-top-right-radius: 0; }
+        .cloud-divider { display: none; } /* Hide the vertical clouds on mobile so it doesn't break layout */
     }
 </style>
 
-<div class="login-split-card">
+<div class="auth-container">
     
     <!-- LEFT SIDE: NGO Branding -->
-    <div class="login-brand-side">
-        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi Logo" class="login-brand-logo">
-        <p class="login-brand-text">
+    <div class="auth-left">
+        <h2>Welcome to</h2>
+        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi Logo" class="auth-logo">
+        <div class="auth-brand">Bhumi</div>
+        <p class="auth-desc">
             Join our movement to catalyze positive change. Together, we empower communities, nurture the environment, and build a sustainable, equitable future for every generation.
         </p>
-        <a href="https://www.bhumi.ngo/" target="_blank" class="btn-explore">Explore Bhumi</a>
     </div>
 
     <!-- RIGHT SIDE: Login Form -->
-    <div class="login-form-side">
-        <h2>Log in</h2>
-        <p class="login-subtitle">Welcome back! Please enter your details.</p>
+    <div class="auth-right">
+        
+        <!-- The overlapping Cloud SVG exactly like the reference -->
+        <svg class="cloud-divider" preserveAspectRatio="none" viewBox="0 0 100 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100,0 C60,20 40,60 60,100 C20,130 20,190 70,220 C40,260 40,320 80,350 C30,390 30,460 70,500 C40,540 40,600 80,630 C20,680 30,760 80,800 L100,800 L100,0 Z" fill="#ffffff"/>
+            <path d="M100,0 C80,30 70,70 90,100 C50,140 50,180 80,220 C60,250 60,310 90,340 C50,380 50,450 80,490 C60,530 60,590 90,620 C50,670 60,750 90,800 L100,800 L100,0 Z" fill="#ffffff" fill-opacity="0.4"/>
+        </svg>
+
+        <div class="auth-title">Log in</div>
+
+        <!-- Custom Flash Message Handling for Login Page -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="auth-alert {% if category == 'error' %}auth-alert-error{% else %}auth-alert-success{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
         <form method="POST" action="/login">
-            <div class="login-form-group">
-                <input type="text" name="username" class="login-input" placeholder="Username" required>
-            </div>
-            <div class="login-form-group">
-                <input type="password" name="password" class="login-input" placeholder="Password" required>
+            
+            <div class="auth-form-group">
+                <label class="auth-label">Username</label>
+                <input type="text" name="username" class="auth-input" placeholder="Enter your username" required>
+                <i class="ph ph-check input-check"></i>
             </div>
             
-            <div class="login-options">
-                <label class="login-checkbox">
+            <div class="auth-form-group">
+                <label class="auth-label">Password</label>
+                <input type="password" name="password" class="auth-input" placeholder="Enter your password" required>
+                <i class="ph ph-check input-check"></i>
+            </div>
+            
+            <div class="auth-options">
+                <label class="auth-checkbox">
                     <input type="checkbox" name="remember">
-                    Remember me
+                    By logging in, I agree with Terms & Conditions
                 </label>
-                <!-- Triggers the modern popup modal below -->
-                <a href="#" class="forgot-link" onclick="document.getElementById('forgotModal').style.display='flex'; return false;">Forgot Password?</a>
+                <a href="#" class="auth-forgot" onclick="document.getElementById('forgotModal').style.display='flex'; return false;">Forgot Password?</a>
             </div>
             
-            <button type="submit" class="btn-submit">Login</button>
+            <div class="auth-actions">
+                <button type="submit" class="auth-btn btn-primary">Login</button>
+                <a href="https://www.bhumi.ngo/" target="_blank" class="auth-btn btn-outline">Explore Bhumi</a>
+            </div>
+            
         </form>
     </div>
 </div>
