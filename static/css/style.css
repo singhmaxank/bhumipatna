@@ -33,7 +33,6 @@ body {
     padding: 2rem 1.5rem;
 }
 
-/* --- Header & Logo --- */
 header {
     background: var(--card-bg);
     box-shadow: var(--shadow-sm);
@@ -62,7 +61,6 @@ header {
 .brand-logo { height: 40px; width: auto; object-fit: contain; }
 .brand-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
 
-/* --- Typography --- */
 h1, h2, h3 { font-weight: 700; margin-bottom: 1rem; color: var(--text-main); letter-spacing: -0.5px; }
 h2 { font-size: 1.75rem; }
 h3 { font-size: 1.25rem; }
@@ -70,11 +68,10 @@ h3 { font-size: 1.25rem; }
 a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
 a:hover { color: var(--accent-hover); text-decoration: underline; }
 
-/* --- Forms & Buttons --- */
 .form-group { margin-bottom: 1.5rem; text-align: left; }
 .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
 
-input[type="text"], input[type="password"], input[type="email"], select {
+input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="url"], select {
     width: 100%;
     padding: 0.75rem 1rem;
     border: 1.5px solid var(--border-color);
@@ -117,26 +114,12 @@ input:focus, select:focus {
     text-decoration: none;
 }
 
-.btn-danger {
-    background: var(--danger);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-}
-
-.btn-danger:hover {
-    background: var(--danger-hover);
-    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3);
-}
-
-.btn-secondary {
-    background: #f1f5f9;
-    color: #475569;
-    box-shadow: none;
-}
+.btn-danger { background: var(--danger); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+.btn-danger:hover { background: var(--danger-hover); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
+.btn-secondary { background: #f1f5f9; color: #475569; box-shadow: none; }
 .btn-secondary:hover { background: #e2e8f0; color: #1e293b; box-shadow: none; }
-
 .btn-small { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; }
 
-/* --- Modern Cards --- */
 .admin-section {
     background: var(--card-bg);
     border-radius: var(--radius);
@@ -150,7 +133,6 @@ input:focus, select:focus {
 .admin-section:hover { box-shadow: var(--shadow-hover); }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 
-/* --- Tables --- */
 .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .data-table th {
     padding: 1rem;
@@ -172,11 +154,9 @@ input:focus, select:focus {
 }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr:hover td { background-color: #f8fafc; }
-
 .action-cell { display: flex; gap: 0.5rem; justify-content: flex-end; }
 .subtext { font-size: 0.85rem; color: var(--text-muted); font-weight: 400; margin-top: 4px; display: block; }
 
-/* --- Badges/Pills --- */
 .badge {
     background: #f1f5f9;
     color: #475569;
@@ -191,10 +171,8 @@ input:focus, select:focus {
 .badge-intern { background: #e0e7ff; color: #3730a3; }
 .badge-ambassador { background: #fef3c7; color: #92400e; }
 
-/* --- Layout Grids --- */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
 
-/* --- Alerts --- */
 .alert {
     padding: 1rem 1.5rem;
     margin-bottom: 1.5rem;
@@ -212,4 +190,56 @@ footer { text-align: center; padding: 2rem 0; color: var(--text-muted); font-siz
 @media (max-width: 768px) {
     .grid-2 { grid-template-columns: 1fr; }
     .admin-section { padding: 1.5rem; }
+}
+
+/* --- Progress Bar --- */
+.progress-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.progress-bg {
+    background-color: var(--border-color);
+    border-radius: 20px;
+    height: 8px;
+    width: 100%;
+    overflow: hidden;
+}
+.progress-fill {
+    background: var(--accent-gradient);
+    height: 100%;
+    border-radius: 20px;
+    transition: width 1s ease-in-out;
+}
+
+/* --- Stat Boxes --- */
+.stat-box {
+    background: #f8fafc;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.25rem 1rem;
+    flex: 1;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+.stat-box:hover {
+    transform: translateY(-2px);
+    border-color: #cbd5e1;
+}
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1;
 }

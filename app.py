@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, date
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from supabase import create_client, Client
 from functools import wraps
@@ -43,7 +44,6 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Authenticate using EXACT column names from your database
         response = supabase.table('users').select('*').eq('username', username).eq('password_hash', password).execute()
         users = response.data
         
@@ -78,9 +78,72 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def intern_dashboard():
+    # 1. Get current user's data
+    user_response = supabase.table('users').select('*').eq('id', session['user_id']).execute()
+    user_data = user_response.data[0] if user_response.data else {}
+    
+    # 2. Calculate Internship Progress (Time Left)
+    tenure_start = user_data.get('tenure_start')
+    tenure_end = user_data.get('tenure_end')
+    progress_percent = 0
+    days_left = 0
+    
+    if tenure_start and tenure_end:
+        try:
+            start_date = datetime.strptime(tenure_start, '%Y-%m-%d').date()
+            end_date = datetime.strptime(tenure_end, '%Y-%m-%d').date()
+            today = date.today()
+            
+            total_days = (end_date - start_date).days
+            if total_days > 0:
+                days_passed = (today - start_date).days
+                days_passed = max(0, min(days_passed, total_days))
+                progress_percent = int((days_passed / total_days) * 100)
+                days_left = total_days - days_passed
+        except Exception:
+            pass 
+
+    # 3. Fetch Leaderboard (Top 5 non-admins)
+    all_users = supabase.table('users').select('full_name, points, role').execute().data
+    leaderboard = sorted([u for u in all_users if u.get('role') != 'admin'], 
+                         key=lambda x: x.get('points', 0), reverse=True)[:5]
+    
+    # 4. Fetch My Contributions (Donations)
+    my_donations = supabase.table('donations').select('*').eq('user_id', session['user_id']).execute().data
+    total_donated = sum(float(d.get('amount', 0)) for d in my_donations)
+
+    # 5. Fetch Tasks and Resources
     tasks_response = supabase.table('tasks').select('*').execute()
     resources_response = supabase.table('resources').select('*').execute()
-    return render_template('intern_dashboard.html', tasks=tasks_response.data, resources=resources_response.data)
+    
+    return render_template('intern_dashboard.html', 
+                           tasks=tasks_response.data, 
+                           resources=resources_response.data,
+                           user_data=user_data,
+                           progress_percent=progress_percent,
+                           days_left=days_left,
+                           leaderboard=leaderboard,
+                           total_donated=total_donated)
+
+@app.route('/submit-donation', methods=['POST'])
+@login_required
+def submit_donation():
+    amount = request.form.get('amount')
+    utr = request.form.get('utr')
+    screenshot_url = request.form.get('screenshot_url')
+    
+    try:
+        supabase.table('donations').insert({
+            'user_id': session['user_id'],
+            'amount': amount,
+            'utr': utr,
+            'screenshot_url': screenshot_url
+        }).execute()
+        flash("Donation logged successfully! It is pending admin verification.", "success")
+    except Exception as e:
+        flash(f"Error logging donation. Please try again.", "error")
+        
+    return redirect(url_for('intern_dashboard'))
 
 # --- ADMIN DASHBOARD ---
 @app.route('/admin')
@@ -133,7 +196,6 @@ def edit_user(user_id):
                 'role': request.form.get('role')
             }
             
-            # Admin Password Reset Logic
             new_password = request.form.get('new_password')
             if new_password and new_password.strip() != "":
                 update_data['password_hash'] = new_password
@@ -155,24 +217,19 @@ def edit_user(user_id):
 @admin_required
 def delete_user(user_id):
     try:
-        # 1. Clear task completions (ignores if it fails due to schema mismatch)
         try:
             supabase.table('task_completions').delete().eq('user_id', user_id).execute()
         except Exception:
             pass 
             
-        # 2. Clear donations (ignores if it fails due to schema mismatch)
         try:
             supabase.table('donations').delete().eq('user_id', user_id).execute()
         except Exception:
             pass
 
-        # 3. Now delete the actual user
         supabase.table('users').delete().eq('id', user_id).execute()
-        
         flash("User deleted successfully!", "success")
     except Exception as e:
-        # This will now print the EXACT Postgres error right onto your screen
         flash(f"Database Blocked Deletion: {str(e)}", "error")
         
     return redirect(url_for('admin_dashboard'))
