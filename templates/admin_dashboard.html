@@ -2,77 +2,169 @@
 {% block title %}Bhumi Patna Portal - Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="section-header">
-    <div>
-        <h2>Admin Overview</h2>
-        <p class="subtext" style="font-size: 0.95rem;">Welcome back, {{ session.name }}</p>
+<div class="bento-grid">
+    
+    <!-- Top Left Card: Total Raised -->
+    <div class="bento-card span-4">
+        <h3 class="card-title">Total Platform Raised</h3>
+        <div class="card-value">₹{{ total_platform_raised }}</div>
+        <p class="subtext" style="color: var(--success);"><i class="ph ph-trend-up"></i> Verified & Approved</p>
     </div>
-    <a href="/admin/users/add" class="btn">+ Add New User</a>
-</div>
 
-<div class="kpi-grid">
-    <div class="kpi-card">
-        <div class="kpi-title">Total Platform Raised (Approved)</div>
-        <div class="kpi-value">₹{{ total_platform_raised }}</div>
+    <!-- Top Middle Card: Active Users -->
+    <div class="bento-card span-4">
+        <h3 class="card-title">Active Volunteers</h3>
+        <div style="display: flex; gap: 2rem; align-items: baseline;">
+            <div>
+                <div class="card-value">{{ interns|length }}</div>
+                <p class="subtext">Interns</p>
+            </div>
+            <div>
+                <div class="card-value" style="color: var(--primary);">{{ ambassadors|length }}</div>
+                <p class="subtext">Ambassadors</p>
+            </div>
+        </div>
     </div>
-    <div class="kpi-card">
-        <div class="kpi-title">Active Interns</div>
-        <div class="kpi-value">{{ interns|length }}</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-title">Ambassadors</div>
-        <div class="kpi-value">{{ ambassadors|length }}</div>
-    </div>
-</div>
 
-<section class="admin-section">
-    <h3 style="margin-bottom: 1rem;">Interns & Volunteers</h3>
-    <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width: 20%;">User Name</th>
-                    <th style="width: 15%;">Head Admin</th>
-                    <th style="width: 30%;">Approved Funds & Donors</th>
-                    <th style="width: 20%;">Tenure Progress</th>
-                    <th style="width: 15%; text-align: right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in interns + ambassadors %}
-                <tr>
-                    <td>
-                        <strong>{{ user.full_name }}</strong>
-                        <span class="badge {% if user.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}" style="display: block; margin-top: 4px; width: fit-content;">
-                            {{ user.role }}
-                        </span>
-                    </td>
-                    <td><span class="subtext" style="font-weight: 600; color: var(--primary);">{{ user.head_name }}</span></td>
-                    <td>
-                        <strong style="color: var(--primary); font-size: 1.05rem;">₹{{ user.total_raised }}</strong>
-                        <span class="subtext" style="font-size: 0.75rem;">{{ user.detailed_donors }}</span>
-                    </td>
-                    <td>
-                        <div class="progress-wrap">
-                            <div class="progress-text">
+    <!-- Top Right Card: Dark Accent Card -->
+    <div class="bento-card span-4 card-dark">
+        <h3 class="card-title" style="color: rgba(255,255,255,0.7);">Platform Activity</h3>
+        <div class="card-value">High</div>
+        <p class="subtext" style="color: rgba(255,255,255,0.7);">Fundraising on track.</p>
+        <div style="margin-top: auto; text-align: right;">
+            <i class="ph ph-chart-line-up" style="font-size: 3rem; opacity: 0.5;"></i>
+        </div>
+    </div>
+
+    <!-- Middle Graphic Card (Chart.js) -->
+    <div class="bento-card span-8">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Donation Trends</h3>
+            <span class="badge badge-approved">Live Data</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Side Graphic Card (Top Intern) -->
+    <div class="bento-card span-4">
+        <h3 class="card-title">Top Fundraiser</h3>
+        {% if leaderboard %}
+            <div style="text-align: center; margin-top: 1rem;">
+                <div style="width: 80px; height: 80px; background: var(--primary-light); color: var(--primary-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; margin: 0 auto 1rem auto;">
+                    {{ leaderboard[0].full_name[0] }}
+                </div>
+                <h2 style="font-size: 1.25rem;">{{ leaderboard[0].full_name }}</h2>
+                <p class="subtext">{{ leaderboard[0].role | title }}</p>
+                <div class="card-value" style="color: var(--primary); font-size: 1.75rem; margin-top: 1rem;">₹{{ leaderboard[0].total_raised }}</div>
+            </div>
+        {% else %}
+            <p class="subtext text-center">No data yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Interns Data Table -->
+    <div class="bento-card span-12">
+        <h3 class="card-title">Interns & Volunteers Database</h3>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">User Name</th>
+                        <th style="width: 15%;">Head Admin</th>
+                        <th style="width: 30%;">Approved Funds</th>
+                        <th style="width: 20%;">Tenure Progress</th>
+                        <th style="width: 15%; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in interns + ambassadors %}
+                    <tr>
+                        <td>
+                            <strong>{{ user.full_name }}</strong>
+                            <span class="badge badge-{% if user.role == 'intern' %}intern{% else %}ambassador{% endif %}" style="display: block; margin-top: 4px; width: fit-content;">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td><span class="subtext" style="font-weight: 600;">{{ user.head_name }}</span></td>
+                        <td>
+                            <strong style="color: var(--primary); font-size: 1.05rem;">₹{{ user.total_raised }}</strong>
+                            <span class="subtext" style="font-size: 0.75rem;">{{ user.detailed_donors }}</span>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.75rem; font-weight: 700; display: flex; justify-content: space-between; margin-bottom: 4px;">
                                 <span>{{ user.progress }}%</span>
                                 <span style="color: var(--text-muted);">{{ user.days_left }}d left</span>
                             </div>
-                            <div class="progress-bg">
-                                <div class="progress-fill" style="width: {{ user.progress }}%;"></div>
+                            <div style="background: var(--border-color); height: 6px; border-radius: 4px; width: 100%; overflow: hidden;">
+                                <div style="background: var(--primary); height: 100%; width: {{ user.progress }}%; border-radius: 4px;"></div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="action-cell">
-                        <a href="/admin/users/edit/{{ user.id }}" class="btn btn-small btn-secondary">Edit</a>
-                        <a href="/admin/users/delete/{{ user.id }}" class="btn btn-small btn-danger" onclick="return confirm('Delete user?');">Del</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                        <td style="text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                            <a href="/admin/users/edit/{{ user.id }}" class="btn btn-small btn-secondary"><i class="ph ph-pencil-simple"></i></a>
+                            <a href="/admin/users/delete/{{ user.id }}" class="btn btn-small btn-danger" onclick="return confirm('Delete user?');"><i class="ph ph-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-</section>
+</div>
+
+<!-- Initialize Chart.js Graphic Data Representation -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        
+        // Extracting data dynamically from Jinja for chart
+        const labels = [{% for user in leaderboard[:6] %}'{{ user.full_name.split()[0] }}',{% endfor %}];
+        const dataPoints = [{% for user in leaderboard[:6] %}{{ user.total_raised }},{% endfor %}];
+
+        // Gradient for line chart
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(5, 150, 105, 0.5)'); // var(--primary)
+        gradient.addColorStop(1, 'rgba(5, 150, 105, 0)');
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#94a3b8' : '#64748b';
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Funds Raised (₹)',
+                    data: dataPoints,
+                    borderColor: '#059669',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#059669',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.4 // Creates the smooth curve seen in the reference image
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: isDark ? '#334155' : '#e2e8f0', drawBorder: false },
+                        ticks: { color: textColor, font: { family: 'Inter' } }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: textColor, font: { family: 'Inter' } }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

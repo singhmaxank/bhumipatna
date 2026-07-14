@@ -1,271 +1,126 @@
-import os
-from datetime import datetime, date
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from supabase import create_client, Client
-from functools import wraps
+{% extends 'base.html' %}
+{% block title %}Bhumi Patna Portal - Intern Dashboard{% endblock %}
 
-app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'default-super-secret-key-2026')
-
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-# --- DECORATORS ---
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session or session.get('role') != 'admin':
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-# --- ROUTES ---
-@app.route('/')
-def index():
-    if 'user_id' in session:
-        if session.get('role') == 'admin':
-            return redirect(url_for('admin_dashboard'))
-        return redirect(url_for('intern_dashboard'))
-    return redirect(url_for('login'))
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        response = supabase.table('users').select('*').eq('username', username).eq('password_hash', password).execute()
-        users = response.data
-        if users:
-            user = users[0]
-            session['user_id'] = user['id']
-            session['role'] = user['role']
-            session['name'] = user['full_name']
-            if user['role'] == 'admin':
-                return redirect(url_for('admin_dashboard'))
-            return redirect(url_for('intern_dashboard'))
-        else:
-            flash("Invalid username or password. Please try again.", "error")
-    return render_template('login.html')
-
-@app.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password():
-    if request.method == 'POST':
-        flash("Password reset instructions have been sent to your email.", "success")
-        return redirect(url_for('login'))
-    return render_template('forgot_password.html')
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-
-@app.route('/dashboard')
-@login_required
-def intern_dashboard():
-    try:
-        all_users = supabase.table('users').select('*').execute().data or []
-        user_data = next((u for u in all_users if u['id'] == session['user_id']), {})
-        
-        # Get Head Name
-        head_admin = next((u for u in all_users if u['id'] == user_data.get('head_id')), None)
-        head_name = head_admin['full_name'] if head_admin else "Not Assigned"
-        
-        # Tenure Progress
-        tenure_start = user_data.get('tenure_start')
-        tenure_end = user_data.get('tenure_end')
-        progress_percent, days_left = 0, 0
-        
-        if tenure_start and tenure_end:
-            try:
-                start_date = datetime.strptime(str(tenure_start).split('T')[0], '%Y-%m-%d').date()
-                end_date = datetime.strptime(str(tenure_end).split('T')[0], '%Y-%m-%d').date()
-                today = date.today()
-                total_days = (end_date - start_date).days
-                if total_days > 0:
-                    days_passed = max(0, min((today - start_date).days, total_days))
-                    progress_percent = int((days_passed / total_days) * 100)
-                    days_left = total_days - days_passed
-            except: pass 
-
-        # Funds Calculation (ONLY Approved funds count towards leaderboard)
-        donations_data = supabase.table('donations').select('*').execute().data or []
-        raised_by_user = {}
-        for d in donations_data:
-            if d.get('status') == 'approved':
-                uid = d.get('user_id')
-                raised_by_user[uid] = raised_by_user.get(uid, 0) + float(d.get('amount') or 0)
-
-        for u in all_users:
-            u['total_raised'] = raised_by_user.get(u.get('id'), 0)
-            
-        leaderboard = sorted([u for u in all_users if u.get('role') != 'admin'], 
-                             key=lambda x: x.get('total_raised', 0), reverse=True)[:5]
-        
-        # My Donations for Personal Table
-        my_donations = [d for d in donations_data if d.get('user_id') == session['user_id']]
-        total_donated = raised_by_user.get(session['user_id'], 0)
-        
-        tasks = supabase.table('tasks').select('*').execute().data or []
-        resources = supabase.table('resources').select('*').execute().data or []
-        
-        return render_template('intern_dashboard.html', tasks=tasks, resources=resources, user_data=user_data,
-                               progress_percent=progress_percent, days_left=days_left, head_name=head_name,
-                               leaderboard=leaderboard, total_donated=total_donated, my_donations=my_donations)
-    except Exception as e:
-        return f"<h3>Dashboard Error:</h3><p>{str(e)}</p>"
-
-@app.route('/submit-donation', methods=['POST'])
-@login_required
-def submit_donation():
-    try:
-        supabase.table('donations').insert({
-            'user_id': session['user_id'],
-            'donor_name': request.form.get('donor_name'),
-            'donor_phone': request.form.get('donor_phone'),
-            'amount': request.form.get('amount'),
-            'utr': request.form.get('utr'),
-            'screenshot_url': request.form.get('screenshot_url'),
-            'status': 'pending'  # Force pending status
-        }).execute()
-        flash("Donation logged successfully! Pending admin verification.", "success")
-    except Exception as e:
-        flash(f"Error logging donation. Error: {str(e)}", "error")
-    return redirect(url_for('intern_dashboard'))
-
-@app.route('/admin')
-@admin_required
-def admin_dashboard():
-    all_users = supabase.table('users').select('*').execute().data or []
-    donations_data = supabase.table('donations').select('*').execute().data or []
+{% block content %}
+<div class="bento-grid">
     
-    today = date.today()
-    total_platform_raised = 0
-    admins_dict = {u['id']: u['full_name'] for u in all_users if u.get('role') == 'admin'}
+    <!-- Graphic Card: Doughnut Chart for Progress -->
+    <div class="bento-card span-4" style="align-items: center; justify-content: center; text-align: center;">
+        <h3 class="card-title">Tenure Progress</h3>
+        <div style="position: relative; width: 140px; height: 140px; margin: 1rem 0;">
+            <canvas id="progressChart"></canvas>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 800; font-size: 1.5rem;">
+                {{ progress_percent }}%
+            </div>
+        </div>
+        <p class="subtext">{{ days_left }} Days Remaining</p>
+    </div>
 
-    for u in all_users:
-        start = u.get('tenure_start')
-        end = u.get('tenure_end')
-        u['progress'] = 0
-        u['days_left'] = 0
-        if start and end:
-            try:
-                s_date = datetime.strptime(str(start).split('T')[0], '%Y-%m-%d').date()
-                e_date = datetime.strptime(str(end).split('T')[0], '%Y-%m-%d').date()
-                t_days = (e_date - s_date).days
-                if t_days > 0:
-                    passed = max(0, min((today - s_date).days, t_days))
-                    u['progress'] = int((passed / t_days) * 100)
-                    u['days_left'] = t_days - passed
-            except: pass
-            
-        u['head_name'] = admins_dict.get(u.get('head_id'), "None")
+    <!-- Info Cards -->
+    <div class="bento-card span-4">
+        <h3 class="card-title">Total Approved Raised</h3>
+        <div class="card-value" style="color: var(--primary);">₹{{ total_donated }}</div>
+        <div style="margin-top: auto;">
+            <p class="subtext">Reporting Head:</p>
+            <p style="font-weight: 700;">{{ head_name }}</p>
+        </div>
+    </div>
 
-        # Detailed Donor List & Total (Only Approved)
-        user_approved_donations = [d for d in donations_data if d.get('user_id') == u.get('id') and d.get('status') == 'approved']
-        u['total_raised'] = sum(float(d.get('amount') or 0) for d in user_approved_donations)
-        u['detailed_donors'] = ", ".join([f"{d.get('donor_name')} (₹{d.get('amount')})" for d in user_approved_donations])
-        if not u['detailed_donors']: u['detailed_donors'] = "No approved collections yet"
-        
-        total_platform_raised += u['total_raised']
+    <!-- Dark Accent Card: Fast Log -->
+    <div class="bento-card span-4 card-dark">
+        <h3 class="card-title" style="color: rgba(255,255,255,0.7);">Quick Action</h3>
+        <div class="card-value" style="font-size: 1.5rem;">Log Collection</div>
+        <p class="subtext" style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">Record a new donor entry.</p>
+        <a href="#logForm" class="btn" style="background: #ffffff; color: var(--primary-dark); width: 100%;">Add New +</a>
+    </div>
 
-    admins = [u for u in all_users if u.get('role') == 'admin']
-    interns = [u for u in all_users if u.get('role') == 'intern']
-    ambassadors = [u for u in all_users if u.get('role') == 'ambassador']
-    
-    return render_template('admin_dashboard.html', admins=admins, interns=interns, ambassadors=ambassadors, total_platform_raised=total_platform_raised)
+    <!-- Log Donation Form -->
+    <div class="bento-card span-6" id="logForm">
+        <h3 class="card-title">Donor Submission Form</h3>
+        <form action="/submit-donation" method="POST">
+            <div class="form-group">
+                <label>Donor Full Name</label>
+                <input type="text" name="donor_name" placeholder="e.g. Rahul Kumar" required>
+            </div>
+            <div class="form-group">
+                <label>Donor Phone Number</label>
+                <input type="text" name="donor_phone" placeholder="10-digit mobile number" required>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Amount (₹)</label>
+                    <input type="number" name="amount" required>
+                </div>
+                <div class="form-group">
+                    <label>UTR / Transaction ID</label>
+                    <input type="text" name="utr" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Drive Screenshot Link (Optional)</label>
+                <input type="url" name="screenshot_url" placeholder="https://drive.google.com/file/d/...">
+            </div>
+            <button type="submit" class="btn" style="width: 100%; margin-top: 0.5rem;"><i class="ph ph-paper-plane-tilt" style="margin-right: 8px;"></i> Submit for Verification</button>
+        </form>
+    </div>
 
-@app.route('/admin/verify')
-@admin_required
-def admin_verify():
-    donations = supabase.table('donations').select('*, users(full_name)').eq('status', 'pending').execute().data or []
-    return render_template('admin_verify.html', donations=donations)
+    <!-- My Collections Table -->
+    <div class="bento-card span-6">
+        <h3 class="card-title">My Collection History</h3>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">Donor Name</th>
+                        <th style="width: 25%;">Amount</th>
+                        <th style="width: 30%; text-align: right;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in my_donations %}
+                    <tr>
+                        <td><strong>{{ d.donor_name }}</strong></td>
+                        <td><strong style="color: var(--primary);">₹{{ d.amount }}</strong></td>
+                        <td style="text-align: right;">
+                            <span class="badge badge-{{ d.status }}">{{ d.status }}</span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">No donations logged yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-@app.route('/admin/verify/<int:donation_id>/<action>')
-@admin_required
-def verify_action(donation_id, action):
-    if action in ['approved', 'rejected']:
-        try:
-            supabase.table('donations').update({'status': action}).eq('id', donation_id).execute()
-            flash(f"Donation successfully {action}!", "success")
-        except Exception as e:
-            flash("Error updating status.", "error")
-    return redirect(url_for('admin_verify'))
+<!-- Doughnut Chart Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        const progress = {{ progress_percent }};
+        const remaining = 100 - progress;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-@app.route('/admin/users/add', methods=['GET', 'POST'])
-@admin_required
-def add_user():
-    if request.method == 'POST':
-        try:
-            insert_data = {
-                'full_name': request.form.get('full_name'),
-                'username': request.form.get('username'),
-                'email': request.form.get('email'),
-                'password_hash': request.form.get('password'),
-                'role': request.form.get('role')
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Remaining'],
+                datasets: [{
+                    data: [progress, remaining],
+                    backgroundColor: ['#059669', isDark ? '#334155' : '#e2e8f0'],
+                    borderWidth: 0,
+                    cutout: '75%', // Makes the ring thin and modern
+                    borderRadius: 20
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                animation: { animateScale: true, animateRotate: true }
             }
-            if request.form.get('tenure_start'): insert_data['tenure_start'] = request.form.get('tenure_start')
-            if request.form.get('tenure_end'): insert_data['tenure_end'] = request.form.get('tenure_end')
-            if request.form.get('head_id'): insert_data['head_id'] = int(request.form.get('head_id'))
-
-            supabase.table('users').insert(insert_data).execute()
-            flash("User created successfully!", "success")
-            return redirect(url_for('admin_dashboard'))
-        except Exception as e:
-            flash(f"Error creating user: {str(e)}", "error")
-            
-    admins = supabase.table('users').select('id, full_name').eq('role', 'admin').execute().data or []
-    return render_template('add_user.html', admins=admins)
-
-@app.route('/admin/users/edit/<int:user_id>', methods=['GET', 'POST'])
-@admin_required
-def edit_user(user_id):
-    if request.method == 'POST':
-        try:
-            update_data = {
-                'full_name': request.form.get('full_name'),
-                'username': request.form.get('username'),
-                'email': request.form.get('email'),
-                'role': request.form.get('role'),
-                'tenure_start': request.form.get('tenure_start') or None,
-                'tenure_end': request.form.get('tenure_end') or None,
-                'head_id': int(request.form.get('head_id')) if request.form.get('head_id') else None
-            }
-            new_password = request.form.get('new_password')
-            if new_password and new_password.strip() != "":
-                update_data['password_hash'] = new_password
-                
-            supabase.table('users').update(update_data).eq('id', user_id).execute()
-            flash("User updated successfully!", "success")
-            return redirect(url_for('admin_dashboard'))
-        except Exception as e:
-            flash(f"Error updating user: {str(e)}", "error")
-
-    user_response = supabase.table('users').select('*').eq('id', user_id).execute()
-    if not user_response.data:
-        flash("User not found.", "error")
-        return redirect(url_for('admin_dashboard'))
-        
-    admins = supabase.table('users').select('id, full_name').eq('role', 'admin').execute().data or []
-    return render_template('edit_user.html', user=user_response.data[0], admins=admins)
-
-@app.route('/admin/users/delete/<int:user_id>')
-@admin_required
-def delete_user(user_id):
-    try:
-        supabase.table('users').delete().eq('id', user_id).execute()
-        flash("User deleted successfully!", "success")
-    except Exception as e:
-        flash(f"Database Blocked Deletion: {str(e)}", "error")
-    return redirect(url_for('admin_dashboard'))
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+        });
+    });
+</script>
+{% endblock %}

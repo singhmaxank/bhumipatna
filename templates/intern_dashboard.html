@@ -2,38 +2,41 @@
 {% block title %}Bhumi Patna Portal - Intern Dashboard{% endblock %}
 
 {% block content %}
-<div class="section-header">
-    <div>
-        <h2>Welcome, {{ session.name }}</h2>
-        <p class="subtext" style="font-size: 0.95rem;">
-            Role: <span class="badge {% if session.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}">{{ session.role | title }}</span>
-            &nbsp; | &nbsp; Head: <strong style="color: var(--primary);">{{ head_name }}</strong>
-        </p>
-    </div>
-</div>
-
-<div class="kpi-grid">
-    <div class="kpi-card" style="grid-column: span 2;">
-        <div class="progress-wrap">
-            <div class="progress-text" style="font-size: 0.9rem; margin-bottom: 0.5rem;">
-                <span>Internship Timeline</span>
-                <span style="color: var(--primary);">{{ days_left }} Days Left</span>
-            </div>
-            <div class="progress-bg" style="height: 10px;">
-                <div class="progress-fill" style="width: {{ progress_percent }}%;"></div>
+<div class="bento-grid">
+    
+    <!-- Graphic Card: Doughnut Chart for Progress -->
+    <div class="bento-card span-4" style="align-items: center; justify-content: center; text-align: center;">
+        <h3 class="card-title">Tenure Progress</h3>
+        <div style="position: relative; width: 140px; height: 140px; margin: 1rem 0;">
+            <canvas id="progressChart"></canvas>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 800; font-size: 1.5rem;">
+                {{ progress_percent }}%
             </div>
         </div>
+        <p class="subtext">{{ days_left }} Days Remaining</p>
     </div>
-    <div class="kpi-card">
-        <div class="kpi-title">Total Approved Raised</div>
-        <div class="kpi-value">₹{{ total_donated }}</div>
-    </div>
-</div>
 
-<div class="grid-2">
+    <!-- Info Cards -->
+    <div class="bento-card span-4">
+        <h3 class="card-title">Total Approved Raised</h3>
+        <div class="card-value" style="color: var(--primary);">₹{{ total_donated }}</div>
+        <div style="margin-top: auto;">
+            <p class="subtext">Reporting Head:</p>
+            <p style="font-weight: 700;">{{ head_name }}</p>
+        </div>
+    </div>
+
+    <!-- Dark Accent Card: Fast Log -->
+    <div class="bento-card span-4 card-dark">
+        <h3 class="card-title" style="color: rgba(255,255,255,0.7);">Quick Action</h3>
+        <div class="card-value" style="font-size: 1.5rem;">Log Collection</div>
+        <p class="subtext" style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">Record a new donor entry.</p>
+        <a href="#logForm" class="btn" style="background: #ffffff; color: var(--primary-dark); width: 100%;">Add New +</a>
+    </div>
+
     <!-- Log Donation Form -->
-    <section class="admin-section" style="margin-bottom: 0;">
-        <h3 style="margin-bottom: 1.5rem;">Log a Donation</h3>
+    <div class="bento-card span-6" id="logForm">
+        <h3 class="card-title">Donor Submission Form</h3>
         <form action="/submit-donation" method="POST">
             <div class="form-group">
                 <label>Donor Full Name</label>
@@ -57,15 +60,13 @@
                 <label>Drive Screenshot Link (Optional)</label>
                 <input type="url" name="screenshot_url" placeholder="https://drive.google.com/file/d/...">
             </div>
-            <button type="submit" class="btn" style="width: 100%; margin-top: 0.5rem;">Submit for Verification</button>
+            <button type="submit" class="btn" style="width: 100%; margin-top: 0.5rem;"><i class="ph ph-paper-plane-tilt" style="margin-right: 8px;"></i> Submit for Verification</button>
         </form>
-    </section>
+    </div>
 
-    <!-- Intern's Collection History -->
-    <section class="admin-section" style="margin-bottom: 0;">
-        <div class="section-header" style="margin-bottom: 1rem;">
-            <h3 style="margin: 0;">My Collections</h3>
-        </div>
+    <!-- My Collections Table -->
+    <div class="bento-card span-6">
+        <h3 class="card-title">My Collection History</h3>
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
@@ -85,11 +86,41 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No donations logged yet.</td></tr>
+                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">No donations logged yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </section>
+    </div>
 </div>
+
+<!-- Doughnut Chart Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        const progress = {{ progress_percent }};
+        const remaining = 100 - progress;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Remaining'],
+                datasets: [{
+                    data: [progress, remaining],
+                    backgroundColor: ['#059669', isDark ? '#334155' : '#e2e8f0'],
+                    borderWidth: 0,
+                    cutout: '75%', // Makes the ring thin and modern
+                    borderRadius: 20
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                animation: { animateScale: true, animateRotate: true }
+            }
+        });
+    });
+</script>
 {% endblock %}
