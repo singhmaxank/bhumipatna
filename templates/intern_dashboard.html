@@ -1,72 +1,92 @@
 {% extends 'base.html' %}
-{% block title %}Intern Dashboard{% endblock %}
+{% block title %}Intern Panel{% endblock %}
 {% block page_name %}My Workspace{% endblock %}
 
 {% block content %}
-<div class="grid-layout">
+<div class="grid">
     
-    <!-- Form Card (Styled like "My Tasks" from reference) -->
-    <div class="bento-card col-4">
-        <div class="card-head">
-            <h3>Log New Collection</h3>
-            <div class="card-action"><i class="ph ph-plus"></i></div>
+    <!-- Top Stats -->
+    <div class="card col-6 card-gradient">
+        <div class="card-header"><span class="card-title">Total Approved Raised</span><i class="ph ph-wallet"></i></div>
+        <div class="stat-value">₹{{ total_donated }}</div>
+        <div class="stat-label">Reporting Head: {{ head_name }}</div>
+    </div>
+
+    <div class="card col-6" style="flex-direction: row; align-items: center; justify-content: space-between;">
+        <div>
+            <div class="card-title">Tenure Progress</div>
+            <div class="stat-value" style="font-size: 2.5rem;">{{ progress_percent }}%</div>
+            <div class="stat-label">{{ days_left }} Days Remaining</div>
         </div>
-        
-        <form action="/submit-donation" method="POST">
-            <div class="input-wrap">
-                <label>Donor Name</label>
-                <input type="text" name="donor_name" class="input-field" required>
-            </div>
-            <div class="input-wrap">
-                <label>Phone Number</label>
-                <input type="text" name="donor_phone" class="input-field" required>
-            </div>
-            <div style="display: flex; gap: 15px;">
-                <div class="input-wrap" style="flex: 1;">
-                    <label>Amount (₹)</label>
-                    <input type="number" name="amount" class="input-field" required>
-                </div>
-                <div class="input-wrap" style="flex: 1;">
-                    <label>UTR ID</label>
-                    <input type="text" name="utr" class="input-field" required>
-                </div>
-            </div>
-            <button type="submit" class="btn-primary">Submit Record</button>
-        </form>
-        
-        <div class="accent-card">
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Your Total Impact</p>
-            <div class="big-number" style="font-size: 2rem;">₹{{ total_donated }}</div>
+        <div style="width: 120px; height: 120px;">
+            <canvas id="progChart"></canvas>
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="bento-card col-8">
-        <div class="card-head">
-            <h3>My Submissions</h3>
-        </div>
-        <div style="overflow-x: auto;">
-            <table class="data-table">
+    <!-- Log Form & Table -->
+    <div class="card col-4">
+        <h3 class="card-title" style="margin-bottom: 24px;">Log Donation</h3>
+        <form action="/submit-donation" method="POST">
+            <div class="form-group">
+                <label>Donor Name</label>
+                <input type="text" name="donor_name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Donor Phone</label>
+                <input type="text" name="donor_phone" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Amount (₹)</label>
+                <input type="number" name="amount" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>UTR ID</label>
+                <input type="text" name="utr" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-main" style="margin-top: 10px;">Submit Record</button>
+        </form>
+    </div>
+
+    <div class="card col-8">
+        <div class="card-header"><h3 class="card-title">My Transactions</h3></div>
+        <div class="table-responsive">
+            <table>
                 <thead>
                     <tr>
-                        <th>Donor Name</th>
+                        <th>Donor Details</th>
                         <th>Amount</th>
+                        <th>UTR</th>
                         <th style="text-align: right;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for d in my_donations %}
                     <tr>
-                        <td style="font-weight: 600;">{{ d.donor_name }}</td>
-                        <td style="color: var(--text-title); font-weight: 700;">₹{{ d.amount }}</td>
+                        <td>
+                            <div style="font-weight: 700;">{{ d.donor_name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">{{ d.donor_phone }}</div>
+                        </td>
+                        <td style="color: var(--text-dark); font-weight: 700;">₹{{ d.amount }}</td>
+                        <td style="font-family: monospace; color: var(--text-muted);">{{ d.utr }}</td>
                         <td style="text-align: right;"><span class="badge badge-{{ d.status }}">{{ d.status | title }}</span></td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="3" style="text-align: center; padding: 30px; color: var(--text-muted);">No collections logged yet.</td></tr>
+                    <tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted);">No records found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        new Chart(document.getElementById('progChart').getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: ['Done', 'Left'], datasets: [{ data: [{{ progress_percent }}, 100 - {{ progress_percent }}], backgroundColor: ['#059669', 'rgba(0,0,0,0.05)'], borderWidth: 0, cutout: '80%' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+        });
+    });
+</script>
 {% endblock %}

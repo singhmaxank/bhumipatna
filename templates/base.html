@@ -3,62 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Bhumi Portal{% endblock %}</title>
+    <!-- Dynamic Title Formatting -->
+    <title>Bhumi Patna - {% block title %}{% endblock %}</title>
+    
+    <!-- Global Favicon -->
     <link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}" type="image/png">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        if (localStorage.getItem('theme') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); }
-    </script>
+    <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
 </head>
 <body>
 
+<div class="app-container">
     {% if session.get('user_id') %}
     <!-- DESKTOP SIDEBAR -->
-    <nav class="app-sidebar">
-        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo" class="sidebar-logo">
-        
-        {% if session.get('role') == 'admin' %}
-            <a href="/admin" class="nav-btn {% if request.path == '/admin' %}active{% endif %}" title="Dashboard"><i class="ph ph-squares-four"></i></a>
-            <a href="/admin/verify" class="nav-btn {% if request.path == '/admin/verify' %}active{% endif %}" title="Verify"><i class="ph ph-check-circle"></i></a>
-            <a href="/admin/users/add" class="nav-btn {% if request.path == '/admin/users/add' %}active{% endif %}" title="Add User"><i class="ph ph-user-plus"></i></a>
-        {% else %}
-            <a href="/dashboard" class="nav-btn active" title="Dashboard"><i class="ph ph-squares-four"></i></a>
-        {% endif %}
-        
-        <div class="nav-bottom">
-            <a href="/logout" class="nav-btn" title="Logout"><i class="ph ph-sign-out"></i></a>
+    <aside class="sidebar">
+        <a href="/" class="sidebar-brand">
+            <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo">
+            Bhumi
+        </a>
+        <nav class="nav-menu">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; padding-left: 10px;">MENU</div>
+            
+            {% if session.get('role') == 'admin' %}
+                <a href="/admin" class="nav-item {% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i> Dashboard</a>
+                <a href="/admin/verify" class="nav-item {% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i> Verify Donations</a>
+                <a href="/admin/users/add" class="nav-item {% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i> Add User</a>
+            {% else %}
+                <a href="/dashboard" class="nav-item active"><i class="ph ph-squares-four"></i> Overview</a>
+            {% endif %}
+        </nav>
+        <div class="nav-bottom nav-menu">
+            <a href="/logout" class="nav-item"><i class="ph ph-sign-out"></i> Logout</a>
         </div>
-    </nav>
+    </aside>
 
     <!-- MOBILE BOTTOM NAV -->
     <nav class="mobile-nav">
         {% if session.get('role') == 'admin' %}
-            <a href="/admin" class="{% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i></a>
-            <a href="/admin/verify" class="{% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i></a>
-            <a href="/admin/users/add" class="{% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i></a>
+            <a href="/admin" class="{% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i><span>Home</span></a>
+            <a href="/admin/verify" class="{% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i><span>Verify</span></a>
+            <a href="/admin/users/add" class="{% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i><span>Add</span></a>
         {% else %}
-            <a href="/dashboard" class="active"><i class="ph ph-squares-four"></i></a>
+            <a href="/dashboard" class="active"><i class="ph ph-squares-four"></i><span>Home</span></a>
         {% endif %}
-        <a href="/logout"><i class="ph ph-sign-out"></i></a>
+        <a href="/logout"><i class="ph ph-sign-out"></i><span>Logout</span></a>
     </nav>
     {% endif %}
 
-    <main class="main-wrapper">
+    <!-- MAIN APP AREA -->
+    <main class="main-content">
         {% if session.get('user_id') %}
-        <header class="top-bar">
-            <div class="page-title">
-                <p>Manage and track impact</p>
+        <header class="header">
+            <div class="header-title">
                 <h1>{% block page_name %}Dashboard{% endblock %}</h1>
             </div>
-            
-            <div class="header-tools">
-                <div class="search-pill">
+            <div class="header-actions">
+                <div class="search-bar">
                     <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="globalSearch" placeholder="Search donors or interns..." onkeyup="searchTables()">
+                    <input type="text" id="globalSearch" placeholder="Search records..." onkeyup="searchTables()">
                 </div>
-                <button class="tool-btn" onclick="toggleTheme()" title="Switch Theme"><i class="ph ph-moon" id="themeIcon"></i></button>
+                <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme"><i class="ph ph-moon" id="themeIcon"></i></button>
             </div>
         </header>
         {% endif %}
@@ -66,7 +73,7 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div style="padding: 16px 24px; border-radius: 16px; margin-bottom: 25px; font-weight: 600; font-size: 0.95rem; background: {% if category=='error' %}#fee2e2; color: #ef4444;{% else %}#d1fae5; color: #059669;{% endif %}">
+                    <div style="padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600; font-size: 0.9rem; background: {% if category=='error' %}#fee2e2; color: #ef4444;{% else %}#d1fae5; color: #059669;{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -75,41 +82,43 @@
         
         {% block content %}{% endblock %}
     </main>
+</div>
 
-    <script>
-        function toggleTheme() {
-            const doc = document.documentElement;
-            const newTheme = doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            doc.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            document.getElementById('themeIcon').className = newTheme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
-            
-            if (typeof Chart !== 'undefined') {
-                Chart.helpers.each(Chart.instances, function(instance){
-                    instance.options.scales.x.ticks.color = newTheme === 'dark' ? '#94a3b8' : '#64748b';
-                    instance.options.scales.y.ticks.color = newTheme === 'dark' ? '#94a3b8' : '#64748b';
-                    instance.update();
-                });
-            }
-        }
-        document.getElementById('themeIcon').className = localStorage.getItem('theme') === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
-
-        // Universal Search Function for all tables
-        function searchTables() {
-            let input = document.getElementById("globalSearch").value.toLowerCase();
-            let tables = document.querySelectorAll(".data-table");
-            tables.forEach(table => {
-                let rows = table.getElementsByTagName("tr");
-                for (let i = 1; i < rows.length; i++) {
-                    let cells = rows[i].getElementsByTagName("td");
-                    let match = false;
-                    for (let j = 0; j < cells.length; j++) {
-                        if (cells[j] && cells[j].innerText.toLowerCase().indexOf(input) > -1) { match = true; break; }
-                    }
-                    rows[i].style.display = match ? "" : "none";
-                }
+<script>
+    function toggleTheme() {
+        const doc = document.documentElement;
+        const newTheme = doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        doc.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        document.getElementById('themeIcon').className = newTheme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
+        
+        if (typeof Chart !== 'undefined') {
+            Chart.helpers.each(Chart.instances, function(instance){
+                instance.options.scales.x.ticks.color = newTheme === 'dark' ? '#9ca3af' : '#6b7280';
+                instance.options.scales.y.ticks.color = newTheme === 'dark' ? '#9ca3af' : '#6b7280';
+                instance.update();
             });
         }
-    </script>
+    }
+    if (document.getElementById('themeIcon')) {
+        document.getElementById('themeIcon').className = localStorage.getItem('theme') === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
+    }
+
+    function searchTables() {
+        let input = document.getElementById("globalSearch").value.toLowerCase();
+        let tables = document.querySelectorAll("table");
+        tables.forEach(table => {
+            let rows = table.getElementsByTagName("tr");
+            for (let i = 1; i < rows.length; i++) {
+                let cells = rows[i].getElementsByTagName("td");
+                let match = false;
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j] && cells[j].innerText.toLowerCase().indexOf(input) > -1) { match = true; break; }
+                }
+                rows[i].style.display = match ? "" : "none";
+            }
+        });
+    }
+</script>
 </body>
 </html>

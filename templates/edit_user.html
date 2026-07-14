@@ -1,67 +1,50 @@
 {% extends 'base.html' %}
-{% block title %}Bhumi Patna Portal - Edit User{% endblock %}
+{% block title %}Edit User{% endblock %}
+{% block page_name %}Modify Account{% endblock %}
 
 {% block content %}
-<div class="admin-section" style="max-width: 700px; margin: 0 auto;">
-    <h2>Edit User Profile</h2>
-    <p class="subtext" style="margin-bottom: 2rem; font-size: 0.95rem;">Update details for {{ user.full_name }}</p>
-    
-    <form method="POST" action="/admin/users/edit/{{ user.id }}">
-        <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" name="full_name" value="{{ user.full_name }}" required>
-        </div>
+<div class="grid" style="justify-content: center; display: flex;">
+    <div class="card" style="width: 100%; max-width: 700px;">
+        <h3 class="card-title" style="margin-bottom: 24px;">Update Details for {{ user.full_name }}</h3>
         
-        <div class="form-group">
-            <label>Username</label>
-            <input type="text" name="username" value="{{ user.username }}" required>
-        </div>
-        
-        <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" name="email" value="{{ user.email }}" required>
-        </div>
-
-        <div class="form-group">
-            <label>User Role</label>
-            <select name="role" required>
-                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Administrator</option>
-                <option value="intern" {% if user.role == 'intern' %}selected{% endif %}>Intern</option>
-                <option value="ambassador" {% if user.role == 'ambassador' %}selected{% endif %}>Campus Ambassador</option>
-            </select>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
-            <div class="form-group">
-                <label>Tenure Start Date</label>
-                <input type="date" name="tenure_start" value="{{ user.tenure_start }}">
+        <form method="POST" action="/admin/users/edit/{{ user.id }}">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group"><label>Full Name</label><input type="text" name="full_name" value="{{ user.full_name }}" class="form-control" required></div>
+                <div class="form-group"><label>Username</label><input type="text" name="username" value="{{ user.username }}" class="form-control" required></div>
             </div>
-            <div class="form-group">
-                <label>Tenure End Date</label>
-                <input type="date" name="tenure_end" value="{{ user.tenure_end }}">
+            
+            <div class="form-group"><label>Email Address</label><input type="email" name="email" value="{{ user.email }}" class="form-control" required></div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label>Role</label>
+                    <select name="role" class="form-control" required>
+                        <option value="intern" {% if user.role == 'intern' %}selected{% endif %}>Intern</option>
+                        <option value="ambassador" {% if user.role == 'ambassador' %}selected{% endif %}>Campus Ambassador</option>
+                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Administrator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Reporting Head</label>
+                    <select name="head_id" class="form-control">
+                        <option value="">None</option>
+                        {% for admin in admins %}
+                            <option value="{{ admin.id }}" {% if user.head_id == admin.id %}selected{% endif %}>{{ admin.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            <!-- NEW HEAD SELECTOR -->
-            <div class="form-group">
-                <label>Reporting Head (Admin)</label>
-                <select name="head_id">
-                    <option value="">None (Main Admin)</option>
-                    {% for admin in admins %}
-                        <option value="{{ admin.id }}" {% if user.head_id == admin.id %}selected{% endif %}>{{ admin.full_name }}</option>
-                    {% endfor %}
-                </select>
+            
+            <div class="form-group" style="margin-top: 10px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <label style="color: var(--primary);">Change Password</label>
+                <input type="text" name="new_password" placeholder="Leave blank to keep current password" class="form-control">
             </div>
-        </div>
-
-        <div class="form-group" style="margin-top: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-            <label style="color: var(--primary);">Reset User Password</label>
-            <p class="subtext" style="margin-bottom: 0.75rem;">Leave blank to keep current password.</p>
-            <input type="text" name="new_password" placeholder="Enter a new password">
-        </div>
-        
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn" style="flex: 1;">Save Changes</button>
-            <a href="/admin" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
-        </div>
-    </form>
+            
+            <div style="display: flex; gap: 16px; margin-top: 10px;">
+                <button type="submit" class="btn-main" style="flex: 2;">Save Changes</button>
+                <a href="/admin" class="btn-main" style="flex: 1; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

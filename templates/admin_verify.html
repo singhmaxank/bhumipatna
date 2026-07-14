@@ -1,46 +1,43 @@
 {% extends 'base.html' %}
-{% block title %}Verify Donations{% endblock %}
-{% block page_name %}Verify Pending Funds{% endblock %}
+{% block title %}Verify Data{% endblock %}
+{% block page_name %}Verification Queue{% endblock %}
 
 {% block content %}
-<div class="grid-layout">
-    <div class="bento-card col-12">
-        <div class="card-head">
-            <h3>Review Submissions</h3>
-        </div>
-        <div style="overflow-x: auto;">
-            <table class="data-table">
+<div class="grid">
+    <div class="card col-12">
+        <div class="table-responsive">
+            <table>
                 <thead>
                     <tr>
                         <th>Submitted By</th>
-                        <th>Donor Name</th>
+                        <th>Donor Info</th>
                         <th>Amount</th>
-                        <th>UTR / Proof</th>
-                        <th style="text-align: right;">Action</th>
+                        <th>Transaction Proof</th>
+                        <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for d in donations %}
                     <tr>
-                        <td><strong>{{ d.users.full_name }}</strong></td>
+                        <td><strong style="color: var(--text-dark);">{{ d.users.full_name }}</strong></td>
                         <td>
                             <div style="font-weight: 600;">{{ d.donor_name }}</div>
                             <div style="font-size: 0.8rem; color: var(--text-muted);">{{ d.donor_phone }}</div>
                         </td>
-                        <td style="color: var(--primary); font-weight: 700;">₹{{ d.amount }}</td>
+                        <td style="color: var(--primary); font-weight: 800;">₹{{ d.amount }}</td>
                         <td>
-                            <div style="font-family: monospace; color: var(--text-muted);">{{ d.utr }}</div>
+                            <div style="font-family: monospace; margin-bottom: 4px;">{{ d.utr }}</div>
                             {% if d.screenshot_url %}
-                                <a href="{{ d.screenshot_url }}" target="_blank" style="color: #3b82f6; font-size: 0.85rem; font-weight: 600; text-decoration: none;">View Proof ↗</a>
+                                <a href="{{ d.screenshot_url }}" target="_blank" style="font-size: 0.8rem; font-weight: 700; color: #3b82f6; text-decoration: none;">Open Proof ↗</a>
                             {% endif %}
                         </td>
-                        <td style="text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
-                            <a href="/admin/verify/{{ d.id }}/approved" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; width: auto; background: var(--primary); color: white;">Approve</a>
-                            <a href="/admin/verify/{{ d.id }}/rejected" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; width: auto; background: #fee2e2; color: #ef4444;">Reject</a>
+                        <td style="text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
+                            <a href="/admin/verify/{{ d.id }}/approved" class="btn-main" style="padding: 8px 16px; font-size: 0.85rem; width: auto;">Approve</a>
+                            <a href="/admin/verify/{{ d.id }}/rejected" class="btn-main" style="padding: 8px 16px; font-size: 0.85rem; width: auto; background: #fee2e2; color: #ef4444;">Reject</a>
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No pending verifications!</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 60px; color: var(--text-muted);">All caught up! No pending verifications.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
