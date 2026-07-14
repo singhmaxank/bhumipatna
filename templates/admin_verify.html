@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Verification Management{% endblock %}
-{% block page_name %}Operational Verification Matrix Queue{% endblock %}
+{% block title %}Verify Donations{% endblock %}
+{% block page_name %}Pending Donations{% endblock %}
 
 {% block content %}
 <div class="grid">
@@ -9,11 +9,11 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Transmitted By Staff</th>
-                        <th>Target Donor Metadata Info</th>
-                        <th>Asserted Numeric Amount</th>
-                        <th>Verification UTR / Target Document Proof</th>
-                        <th style="text-align: right;">System Validation Resolution Actions</th>
+                        <th>Submitted By</th>
+                        <th>Donor Info</th>
+                        <th>Amount</th>
+                        <th>Payment Proof (UTR)</th>
+                        <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -28,9 +28,9 @@
                         <td>
                             <div style="font-family: monospace; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-dark);">{{ d.utr }}</div>
                             {% if d.screenshot_url %}
-                                <a href="{{ d.screenshot_url }}" target="_blank" style="font-size: 0.82rem; font-weight: 700; color: #3b82f6; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">Open Secure Proof Link <i class="ph ph-arrow-square-out"></i></a>
+                                <a href="{{ d.screenshot_url }}" target="_blank" style="font-size: 0.82rem; font-weight: 700; color: #3b82f6; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">View Proof <i class="ph ph-arrow-square-out"></i></a>
                             {% else %}
-                                <span style="font-size: 0.8rem; color: #ef4444; font-weight: 600;">No document attachment linked</span>
+                                <span style="font-size: 0.8rem; color: #ef4444; font-weight: 600;">No link provided</span>
                             {% endif %}
                         </td>
                         <td style="text-align: right; display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
@@ -39,7 +39,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" style="text-align: center; padding: 60px; color: var(--text-muted); font-size: 0.95rem;">System validation queue resolved. Zero pending items active.</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 60px; color: var(--text-muted); font-size: 0.95rem;">No pending donations to verify!</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

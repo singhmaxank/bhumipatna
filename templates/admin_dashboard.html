@@ -1,66 +1,66 @@
 {% extends 'base.html' %}
-{% block title %}Admin Overview{% endblock %}
-{% block page_name %}Operational Analytics{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_name %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="grid">
     
     <!-- Mini Metric Blocks -->
     <div class="card col-3 card-gradient">
-        <div class="card-header"><span class="card-title">Consolidated Funding</span><i class="ph ph-wallet" style="font-size: 1.2rem;"></i></div>
+        <div class="card-header"><span class="card-title">Total Raised</span><i class="ph ph-wallet" style="font-size: 1.2rem;"></i></div>
         <div class="stat-value">₹{{ total_platform_raised }}</div>
-        <div class="stat-label">Net Verified Balance Impact</div>
+        <div class="stat-label">Total Approved Funds</div>
     </div>
     
     <div class="card col-3">
-        <div class="card-header"><span class="card-title">Registered Interns</span><i class="ph ph-users" style="font-size: 1.2rem;"></i></div>
+        <div class="card-header"><span class="card-title">Interns</span><i class="ph ph-users" style="font-size: 1.2rem;"></i></div>
         <div class="stat-value">{{ interns|length }}</div>
-        <div class="stat-label">Directory Operational Staff</div>
+        <div class="stat-label">Active Interns</div>
     </div>
     
     <div class="card col-3">
         <div class="card-header"><span class="card-title">Ambassadors</span><i class="ph ph-student" style="font-size: 1.2rem;"></i></div>
         <div class="stat-value">{{ ambassadors|length }}</div>
-        <div class="stat-label">Campus Relations Leads</div>
+        <div class="stat-label">Active Ambassadors</div>
     </div>
     
     <div class="card col-3">
-        <div class="card-header"><span class="card-title">Top Workstation</span><i class="ph ph-trophy" style="font-size: 1.2rem;"></i></div>
+        <div class="card-header"><span class="card-title">Top Performer</span><i class="ph ph-trophy" style="font-size: 1.2rem;"></i></div>
         {% if leaderboard %}
             <div class="stat-value" style="font-size: 1.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ leaderboard[0].full_name }}</div>
-            <div class="stat-label" style="color: var(--primary); font-weight: 700;">₹{{ leaderboard[0].total_raised }} Platform Impact</div>
+            <div class="stat-label" style="color: var(--primary); font-weight: 700;">₹{{ leaderboard[0].total_raised }} Raised</div>
         {% else %}
-            <div class="stat-value" style="font-size: 1.2rem;">No logs calculated</div>
+            <div class="stat-value" style="font-size: 1.2rem;">No data yet</div>
         {% endif %}
     </div>
 
-    <!-- Data Visualization Module Canvas Blocks -->
+    <!-- Data Visualization -->
     <div class="card col-4">
-        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">Workforce Metrics</h3>
+        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">User Breakdown</h3>
         <div style="position: relative; height: 220px; width: 100%;">
             <canvas id="donutChart"></canvas>
         </div>
     </div>
 
     <div class="card col-8">
-        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">Performance Curve Metrics</h3>
+        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">Funding Trends</h3>
         <div style="position: relative; height: 220px; width: 100%;">
             <canvas id="areaChart"></canvas>
         </div>
     </div>
 
-    <!-- Main Operational Workspace Data Directory Grid -->
+    <!-- User Table -->
     <div class="card col-12">
-        <div class="card-header"><h3 class="card-title" style="font-size: 0.95rem; color: var(--text-dark);">Active Workforce Directory</h3></div>
+        <div class="card-header"><h3 class="card-title" style="font-size: 0.95rem; color: var(--text-dark);">User Directory</h3></div>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th>Staff Profile Name</th>
-                        <th>Directory Target Access Role</th>
-                        <th>Approved Verified Impact</th>
-                        <th>Assigned Reporting Manager</th>
-                        <th style="text-align: right;">System Adjust Action</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Total Raised</th>
+                        <th>Reporting Head</th>
+                        <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -81,8 +81,8 @@
                         <td style="color: var(--primary); font-weight: 800;">₹{{ user.total_raised }}</td>
                         <td style="color: var(--text-main);">{{ user.head_name }}</td>
                         <td style="text-align: right;">
-                            <a href="/admin/users/edit/{{ user.id }}" style="color: var(--text-muted); margin-right: 12px;" title="Edit Access Parameters"><i class="ph ph-pencil-simple" style="font-size: 1.2rem;"></i></a>
-                            <a href="/admin/users/delete/{{ user.id }}" onclick="return confirm('Confirm permanent system directory deletion?');" style="color: #ef4444;" title="Purge Record"><i class="ph ph-trash" style="font-size: 1.2rem;"></i></a>
+                            <a href="/admin/users/edit/{{ user.id }}" style="color: var(--text-muted); margin-right: 12px;" title="Edit"><i class="ph ph-pencil-simple" style="font-size: 1.2rem;"></i></a>
+                            <a href="/admin/users/delete/{{ user.id }}" onclick="return confirm('Are you sure you want to delete this user?');" style="color: #ef4444;" title="Delete"><i class="ph ph-trash" style="font-size: 1.2rem;"></i></a>
                         </td>
                     </tr>
                     {% endfor %}

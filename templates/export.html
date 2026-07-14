@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bhumi Patna - Generating Report Record Document...</title>
-    <link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}?v=2" type="image/png">
+    <title>Bhumi Patna - Generating PDF...</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}" type="image/png">
     
-    <!-- Script Engine Compilation Injector Source -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { background: #f4f6f8; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #374151; }
@@ -14,27 +13,31 @@
         .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #059669; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* High Fidelity Layout Target Configuration Context */
+        /* FIXED PDF WIDTH: 750px ensures it will not get cut off by the PDF generator */
         #printable-document-canvas {
-            background: #ffffff; padding: 50px; width: 840px; color: #111827;
+            background: #ffffff; 
+            padding: 30px; 
+            width: 750px; 
+            box-sizing: border-box;
+            color: #111827;
         }
         .doc-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #059669; padding-bottom: 20px; margin-bottom: 25px; }
         .brand-title { font-size: 1.8rem; font-weight: 800; color: #059669; }
         .meta-text { font-size: 0.85rem; color: #6b7280; text-align: right; line-height: 1.5; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 0.88rem; }
-        th { background-color: #f9fafb; font-weight: 700; text-transform: uppercase; font-size: 0.78rem; color: #4b5563; }
+        th, td { padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 0.9rem; }
+        th { background-color: #f9fafb; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; color: #4b5563; }
         .amount-highlight { color: #059669; font-weight: 700; font-size: 0.95rem; }
-        .badge-print { font-weight: 600; text-transform: capitalize; font-size: 0.8rem; }
+        .badge-print { font-weight: 600; text-transform: capitalize; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
     <div class="spinner-box">
         <div class="spinner"></div>
-        <div style="font-weight: 700; font-size: 1.05rem;">Compiling Data Engine Analytics Matrix...</div>
-        <div style="font-size: 0.82rem; color: #9ca3af; margin-top: 5px;">Building PDF Document Stream...</div>
+        <div style="font-weight: 700; font-size: 1.05rem;">Generating Data Report...</div>
+        <div style="font-size: 0.82rem; color: #9ca3af; margin-top: 5px;">Building PDF Document...</div>
     </div>
 
     <!-- Hidden Layout Target Canvas -->
@@ -43,21 +46,20 @@
             <div class="doc-header">
                 <div>
                     <div class="brand-title">Bhumi Patna</div>
-                    <div style="font-size: 0.9rem; font-weight: 600; color: #4b5563; margin-top: 4px;">Workforce Performance Impact Report</div>
+                    <div style="font-size: 0.9rem; font-weight: 600; color: #4b5563; margin-top: 4px;">User Performance Report</div>
                 </div>
                 <div class="meta-text">
-                    <div><strong>Document Classification:</strong> Confidential - Internal Admin Use</div>
-                    <div><strong>Generated On System Timestamp:</strong> <span id="liveDate"></span></div>
+                    <div><strong>Date Generated:</strong> <span id="liveDate"></span></div>
                 </div>
             </div>
             
             <table>
                 <thead>
                     <tr>
-                        <th>Directory Employee Name</th>
-                        <th>Directory Target System Role</th>
-                        <th>Primary System Email Endpoint Address</th>
-                        <th>Approved System Impact Value</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Email Address</th>
+                        <th>Total Raised</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,7 +67,7 @@
                     <tr>
                         <td><strong style="color: #111827; font-weight: 700;">{{ u.full_name }}</strong></td>
                         <td><span class="badge-print">{{ u.role }}</span></td>
-                        <td style="color: #4b5563; font-family: monospace;">{{ u.email }}</td>
+                        <td style="color: #4b5563;">{{ u.email }}</td>
                         <td class="amount-highlight">₹ {{ u.total_raised }}</td>
                     </tr>
                     {% endfor %}
@@ -82,18 +84,17 @@
         window.addEventListener("DOMContentLoaded", function() {
             var element = document.getElementById('printable-document-canvas');
             var configurationOptions = {
-                margin:       [0.4, 0.4, 0.4, 0.4],
-                filename:     'Bhumi_Patna_Workforce_Performance_Report.pdf',
+                margin:       0.3,
+                filename:     'Bhumi_Patna_Data_Report.pdf',
                 image:        { type: 'jpeg', quality: 1.0 },
                 html2canvas:  { scale: 2, useCORS: true, logging: false },
                 jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            // Trigger document build stream context and redirect runtime execution stack pointer back to home
             html2pdf().set(configurationOptions).from(element).save().then(function() {
                 window.location.href = '/admin';
             }).catch(function(err) {
-                console.error("PDF Print Subsystem Crash Exception Triggered: ", err);
+                console.error("PDF generation failed: ", err);
                 window.location.href = '/admin';
             });
         });
