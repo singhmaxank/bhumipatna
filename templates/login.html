@@ -1,101 +1,56 @@
-{% extends 'base.html' %}
-{% block title %}Bhumi Patna Portal - Login{% endblock %}
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | Bhumi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
 
-{% block content %}
-<style>
-    /* Full-screen background and layout */
-    .top-nav, footer { display: none !important; }
-    body, html { height: 100%; margin: 0; background-color: #e2e8f0; }
-    .main-content { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-
-    /* Centered Login Card */
-    .login-wrapper {
-        display: flex;
-        width: 100%;
-        max-width: 900px;
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        overflow: hidden;
-    }
-
-    /* Left Panel: Green Theme */
-    .login-left {
-        flex: 1;
-        background: #059669;
-        color: white;
-        padding: 40px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-    .login-left img { width: 120px; filter: brightness(0) invert(1); margin-bottom: 20px; }
-    .login-left p { font-size: 0.9rem; line-height: 1.6; opacity: 0.9; max-width: 300px; }
-
-    /* Right Panel: Form */
-    .login-right { flex: 1; padding: 60px; }
-    .login-right h2 { font-size: 2rem; margin-bottom: 30px; color: #1e293b; }
-
-    .input-group { margin-bottom: 20px; position: relative; }
-    .input-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: #334155; }
-    .input-group input {
-        width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 8px;
-        font-size: 1rem; outline: none; transition: border 0.3s;
-    }
-    .input-group input:focus { border-color: #059669; }
-
-    /* Show Password Toggle */
-    .toggle-password {
-        position: absolute; right: 15px; top: 40px; cursor: pointer; color: #64748b; font-size: 0.9rem;
-    }
-
-    .login-actions { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; font-size: 0.85rem; }
-    .login-actions a { color: #059669; font-weight: 600; text-decoration: none; }
-
-    .btn-login { width: 100%; padding: 12px; background: #059669; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-explore { width: 100%; padding: 12px; background: transparent; color: #059669; border: 1px solid #059669; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; text-align: center; display: block; text-decoration: none; }
-
-    @media (max-width: 768px) { .login-wrapper { flex-direction: column; } }
-</style>
-
-<div class="login-wrapper">
+<div class="login-page-container">
     <div class="login-left">
         <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo">
-        <p>Join our movement to catalyze positive change. Together, we empower communities, nurture the environment, and build a sustainable, equitable future for every generation.</p>
+        <h2>Bhumi Patna</h2>
+        <p>Join our movement to catalyze positive change. Together, we empower communities and nurture the environment.</p>
     </div>
     
     <div class="login-right">
         <h2>Log in</h2>
         <form method="POST" action="/login">
-            <div class="input-group">
-                <label>Username</label>
-                <input type="text" name="username" placeholder="Enter your username" required>
-            </div>
-            <div class="input-group">
-                <label>Password</label>
-                <input type="password" name="password" id="password" placeholder="Enter your password" required>
-                <span class="toggle-password" onclick="togglePass()">Show</span>
+            <input type="text" name="username" class="input-field" placeholder="Username" required>
+            
+            <div class="password-container">
+                <input type="password" name="password" id="passInput" class="input-field" placeholder="Password" required>
+                <span class="toggle-btn" onclick="togglePass()">SHOW</span>
             </div>
             
-            <div class="login-actions">
-                <label><input type="checkbox" name="remember"> Keep me logged in</label>
-                <a href="#" onclick="alert('Please contact your leading head/admin for password assistance.')">Forgot Password?</a>
+            <div class="options">
+                <label><input type="checkbox"> Remember me</label>
+                <a href="#" onclick="document.getElementById('modal').style.display='flex'">Forgot Password?</a>
             </div>
             
             <button type="submit" class="btn-login">Login</button>
-            <a href="https://www.bhumi.ngo/" target="_blank" class="btn-explore">Explore Bhumi</a>
         </form>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+    <div class="modal-content">
+        <h3>Reset Password</h3>
+        <p>Please contact your leading head or admin to reset your account password.</p>
+        <button class="btn-login" onclick="document.getElementById('modal').style.display='none'">Close</button>
     </div>
 </div>
 
 <script>
     function togglePass() {
-        const x = document.getElementById("password");
-        const t = document.querySelector(".toggle-password");
-        if (x.type === "password") { x.type = "text"; t.innerText = "Hide"; } 
-        else { x.type = "password"; t.innerText = "Show"; }
+        let x = document.getElementById("passInput");
+        let btn = document.querySelector(".toggle-btn");
+        if (x.type === "password") { x.type = "text"; btn.innerText = "HIDE"; }
+        else { x.type = "password"; btn.innerText = "SHOW"; }
     }
 </script>
-{% endblock %}
+</body>
+</html>
