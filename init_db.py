@@ -1,39 +1,32 @@
 """
-Initializes bhumi.db from schema.sql and seeds it with a demo admin account,
+Initializes PostgreSQL database from schema.sql and seeds it with a demo admin account,
 a few intern/ambassador accounts, sample tasks, resources and donations.
 Run this once before starting the app:  python init_db.py
 """
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import os
 from datetime import date, timedelta
 from werkzeug.security import generate_password_hash
 
-DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "bhumi.db"))
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.sql")
 
-
 def init_db(if_missing_only=False):
-    if os.path.exists(DB_PATH):
-        if if_missing_only:
-            print(f"Database already exists at {DB_PATH} — skipping re-seed.")
-            return
-        os.remove(DB_PATH)
-
+    # Connect to PostgreSQL using the DATABASE_URL environment variable
     conn = psycopg2.connect(
-    os.environ.get('postgresql://postgres:AdminBhumi%406458@db.tvpeifkivzonhguodour.supabase.co:5432/postgres'),
-    cursor_factory=RealDictCursor
-)
-    with open(SCHEMA_PATH, "r") as f:
-        conn.executescript(f.read())
-
+        os.environ.get('DATABASE_URL'),
+        cursor_factory=RealDictCursor
+    )
     cur = conn.cursor()
+
+    # psycopg2 executes SQL files directly via the cursor
+    with open(SCHEMA_PATH, "r") as f:
+        cur.execute(f.read())
+
     today = date.today()
 
     # --- Users -----------------------------------------------------------
     users = [
-        # username, password, role, full_name, email, phone, tenure_start, tenure_end
         ("admin", "Admin@123", "admin", "Bhumi Admin", "admin@bhumi.ngo", "9999900000", None, None),
         ("priya.sharma", "Intern@123", "intern", "Priya Sharma", "priya@example.com", "9876500001",
          today - timedelta(days=20), today + timedelta(days=40)),
@@ -49,12 +42,13 @@ def init_db(if_missing_only=False):
 
     user_ids = {}
     for uname, pwd, role, name, email, phone, t_start, t_end in users:
+        # Replaced cur.lastrowid with PostgreSQL 'RETURNING id'
         cur.execute(
             """INSERT INTO users (username, password_hash, role, full_name, email, phone, tenure_start, tenure_end)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
             (uname, generate_password_hash(pwd), role, name, email, phone, t_start, t_end),
         )
-        user_ids[uname] = cur.lastrowid
+        user_ids[uname] = cur.fetchone()['id']
 
     # --- Donations ---------------------------------------------------------
     donations = [
@@ -72,7 +66,7 @@ def init_db(if_missing_only=False):
     for uname, donor, amount, link, status, note in donations:
         cur.execute(
             """INSERT INTO donations (user_id, donor_name, amount, drive_link, status, admin_note, reviewed_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
             (user_ids[uname], donor, amount, link, status, note,
              None if status == "pending" else today),
         )
@@ -87,14 +81,14 @@ def init_db(if_missing_only=False):
     task_ids = []
     for title, desc, deadline in tasks:
         cur.execute(
-            "INSERT INTO tasks (title, description, deadline, created_by) VALUES (?, ?, ?, ?)",
+            "INSERT INTO tasks (title, description, deadline, created_by) VALUES (%s, %s, %s, %s) RETURNING id",
             (title, desc, deadline, user_ids["admin"]),
         )
-        task_ids.append(cur.lastrowid)
+        task_ids.append(cur.fetchone()['id'])
 
     # a couple of completions
-    cur.execute("INSERT INTO task_completions (task_id, user_id) VALUES (?, ?)", (task_ids[0], user_ids["priya.sharma"]))
-    cur.execute("INSERT INTO task_completions (task_id, user_id) VALUES (?, ?)", (task_ids[2], user_ids["karan.mehta"]))
+    cur.execute("INSERT INTO task_completions (task_id, user_id) VALUES (%s, %s)", (task_ids[0], user_ids["priya.sharma"]))
+    cur.execute("INSERT INTO task_completions (task_id, user_id) VALUES (%s, %s)", (task_ids[2], user_ids["karan.mehta"]))
 
     # --- Resources -------------------------------------------------------
     resources = [
@@ -105,18 +99,19 @@ def init_db(if_missing_only=False):
         ("Donor FAQ One-Pager", "Pitch Deck", "https://drive.google.com/drive/folders/bhumi-donor-faq"),
     ]
     for title, category, link in resources:
-        cur.execute("INSERT INTO resources (title, category, link) VALUES (?, ?, ?)", (title, category, link))
+        cur.execute("INSERT INTO resources (title, category, link) VALUES (%s, %s, %s)", (title, category, link))
 
     conn.commit()
+    cur.close()
     conn.close()
-    print(f"Database initialized at {DB_PATH}")
+    print("Database initialized and seeded successfully via Supabase!")
     print("Demo logins:")
     print("  admin            / Admin@123        (admin)")
-    print("  priya.sharma     / Intern@123        (intern)")
-    print("  rahul.verma      / Intern@123        (intern)")
-    print("  ananya.das       / Ambassador@123    (ambassador)")
-    print("  karan.mehta      / Ambassador@123    (ambassador)")
-    print("  sneha.iyer       / Intern@123        (intern)")
+    print("  priya.sharma     / Intern@123       (intern)")
+    print("  rahul.verma      / Intern@123       (intern)")
+    print("  ananya.das       / Ambassador@123   (ambassador)")
+    print("  karan.mehta      / Ambassador@123   (ambassador)")
+    print("  sneha.iyer       / Intern@123       (intern)")
 
 
 if __name__ == "__main__":
