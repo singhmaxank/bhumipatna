@@ -1,118 +1,33 @@
 {% extends 'base.html' %}
-{% block title %}Admin Dashboard{% endblock %}
 {% block page_name %}Dashboard{% endblock %}
-
 {% block content %}
 <div class="grid">
-    
-    <!-- Mini Metric Blocks -->
-    <div class="card col-3 card-gradient">
-        <div class="card-header"><span class="card-title">Total Raised</span><i class="ph ph-wallet" style="font-size: 1.2rem;"></i></div>
-        <div class="stat-value">₹{{ total_platform_raised }}</div>
-        <div class="stat-label">Total Approved Funds</div>
-    </div>
-    
+    <!-- Simple Cards -->
     <div class="card col-3">
-        <div class="card-header"><span class="card-title">Interns</span><i class="ph ph-users" style="font-size: 1.2rem;"></i></div>
+        <div class="card-title">Total Raised</div>
+        <div class="stat-value">₹{{ total_raised }}</div>
+    </div>
+    <div class="card col-3">
+        <div class="card-title">Total Interns</div>
         <div class="stat-value">{{ interns|length }}</div>
-        <div class="stat-label">Active Interns</div>
     </div>
     
-    <div class="card col-3">
-        <div class="card-header"><span class="card-title">Ambassadors</span><i class="ph ph-student" style="font-size: 1.2rem;"></i></div>
-        <div class="stat-value">{{ ambassadors|length }}</div>
-        <div class="stat-label">Active Ambassadors</div>
-    </div>
-    
-    <div class="card col-3">
-        <div class="card-header"><span class="card-title">Top Performer</span><i class="ph ph-trophy" style="font-size: 1.2rem;"></i></div>
-        {% if leaderboard %}
-            <div class="stat-value" style="font-size: 1.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ leaderboard[0].full_name }}</div>
-            <div class="stat-label" style="color: var(--primary); font-weight: 700;">₹{{ leaderboard[0].total_raised }} Raised</div>
-        {% else %}
-            <div class="stat-value" style="font-size: 1.2rem;">No data yet</div>
-        {% endif %}
+    <!-- Filter -->
+    <div class="card col-6">
+        <div class="card-title">Filter Data</div>
+        <select onchange="window.location.href='/admin?days='+this.value" class="form-control">
+            <option value="7" {% if selected_days==7 %}selected{% endif %}>Last 7 Days</option>
+            <option value="30" {% if selected_days==30 %}selected{% endif %}>Last 30 Days</option>
+        </select>
     </div>
 
-    <!-- Data Visualization -->
-    <div class="card col-4">
-        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">User Breakdown</h3>
-        <div style="position: relative; height: 220px; width: 100%;">
-            <canvas id="donutChart"></canvas>
-        </div>
-    </div>
-
-    <div class="card col-8">
-        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">Funding Trends</h3>
-        <div style="position: relative; height: 220px; width: 100%;">
-            <canvas id="areaChart"></canvas>
-        </div>
-    </div>
-
-    <!-- User Table -->
+    <!-- Notices -->
     <div class="card col-12">
-        <div class="card-header"><h3 class="card-title" style="font-size: 0.95rem; color: var(--text-dark);">User Directory</h3></div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Role</th>
-                        <th>Total Raised</th>
-                        <th>Reporting Head</th>
-                        <th style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in interns + ambassadors %}
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-app); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary);">
-                                    {{ user.full_name[0] }}
-                                </div>
-                                <div>
-                                    <div style="font-weight: 700; color: var(--text-dark);">{{ user.full_name }}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">@{{ user.username }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="badge badge-{% if user.role == 'intern' %}intern{% else %}ambassador{% endif %}">{{ user.role }}</span></td>
-                        <td style="color: var(--primary); font-weight: 800;">₹{{ user.total_raised }}</td>
-                        <td style="color: var(--text-main);">{{ user.head_name }}</td>
-                        <td style="text-align: right;">
-                            <a href="/admin/users/edit/{{ user.id }}" style="color: var(--text-muted); margin-right: 12px;" title="Edit"><i class="ph ph-pencil-simple" style="font-size: 1.2rem;"></i></a>
-                            <a href="/admin/users/delete/{{ user.id }}" onclick="return confirm('Are you sure you want to delete this user?');" style="color: #ef4444;" title="Delete"><i class="ph ph-trash" style="font-size: 1.2rem;"></i></a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <h3 class="card-title">Post Announcement</h3>
+        <form action="/admin/announcement" method="POST" style="display:flex; gap:10px;">
+            <input type="text" name="content" class="form-control" placeholder="Type here..." required>
+            <button type="submit" class="btn-main" style="width: auto;">Post</button>
+        </form>
     </div>
 </div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    new Chart(document.getElementById('donutChart').getContext('2d'), {
-        type: 'doughnut',
-        data: { labels: ['Interns', 'Ambassadors'], datasets: [{ data: [{{ interns|length }}, {{ ambassadors|length }}], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 0, cutout: '72%' }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { family: 'Inter', weight: 600 } } } } }
-    });
-
-    const ctx = document.getElementById('areaChart').getContext('2d');
-    let gradient = ctx.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, 'rgba(5, 150, 105, 0.2)'); 
-    gradient.addColorStop(1, 'rgba(5, 150, 105, 0)');
-    
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [{% for user in leaderboard[:8] %}'{{ user.full_name.split()[0] }}',{% endfor %}],
-            datasets: [{ data: [{% for user in leaderboard[:8] %}{{ user.total_raised }},{% endfor %}], borderColor: '#059669', backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { border: { dash: [4, 4] }, grid: { color: 'rgba(0,0,0,0.04)' } } } }
-    });
-});
-</script>
 {% endblock %}
