@@ -79,11 +79,10 @@ def logout():
 @login_required
 def intern_dashboard():
     try:
-        # 1. Get current user's data safely
         user_response = supabase.table('users').select('*').eq('id', session['user_id']).execute()
         user_data = user_response.data[0] if user_response.data else {}
         
-        # 2. Calculate Internship Progress (Time Left)
+        # Calculate Internship Progress
         tenure_start = user_data.get('tenure_start')
         tenure_end = user_data.get('tenure_end')
         progress_percent = 0
@@ -91,7 +90,6 @@ def intern_dashboard():
         
         if tenure_start and tenure_end:
             try:
-                # Splits by 'T' just in case Supabase sends a timestamp instead of a date
                 start_date = datetime.strptime(str(tenure_start).split('T')[0], '%Y-%m-%d').date()
                 end_date = datetime.strptime(str(tenure_end).split('T')[0], '%Y-%m-%d').date()
                 today = date.today()
@@ -103,22 +101,33 @@ def intern_dashboard():
                     progress_percent = int((days_passed / total_days) * 100)
                     days_left = total_days - days_passed
             except Exception:
-                pass # Fails gracefully if dates are messed up
+                pass 
 
-        # 3. Fetch Leaderboard (Safely defaults to 0 if 'points' column is missing or Null)
-        all_users = supabase.table('users').select('*').execute().data
-        leaderboard = sorted([u for u in all_users if u.get('role') != 'admin'], 
-                             key=lambda x: float(x.get('points') or 0), reverse=True)[:5]
-        
-        # 4. Fetch My Contributions (Safely defaults to 0 if table is missing or values are Null)
-        total_donated = 0
+        # Aggregate Donations to calculate Funds Raised
+        donations_data = []
         try:
-            my_donations = supabase.table('donations').select('*').eq('user_id', session['user_id']).execute().data
-            total_donated = sum(float(d.get('amount') or 0) for d in my_donations)
+            donations_data = supabase.table('donations').select('*').execute().data
         except Exception:
-            pass 
+            pass
+            
+        raised_by_user = {}
+        for d in donations_data:
+            uid = d.get('user_id')
+            amt = float(d.get('amount') or 0)
+            raised_by_user[uid] = raised_by_user.get(uid, 0) + amt
 
-        # 5. Fetch Tasks and Resources safely
+        # Fetch Leaderboard (Sorted by total funds raised instead of points)
+        all_users = supabase.table('users').select('*').execute().data
+        for u in all_users:
+            u['total_raised'] = raised_by_user.get(u.get('id'), 0)
+            
+        leaderboard = sorted([u for u in all_users if u.get('role') != 'admin'], 
+                             key=lambda x: x.get('total_raised', 0), reverse=True)[:5]
+        
+        # Current User's Total Donated
+        total_donated = raised_by_user.get(session['user_id'], 0)
+
+        # Fetch Tasks and Resources
         tasks = []
         resources = []
         try:
@@ -137,8 +146,33 @@ def intern_dashboard():
                                total_donated=total_donated)
                                
     except Exception as e:
-        # If it still crashes, this will print the EXACT error on your screen so we can fix it!
         return f"<h3>Dashboard Error:</h3><p>{str(e)}</p>"
+
+@app.route('/submit-donation', methods=['POST'])
+@login_required
+def submit_donation():
+    # Fetching new form fields
+    donor_name = request.form.get('donor_name')
+    donor_phone = request.form.get('donor_phone')
+    amount = request.form.get('amount')
+    utr = request.form.get('utr')
+    screenshot_url = request.form.get('screenshot_url')
+    
+    try:
+        supabase.table('donations').insert({
+            'user_id': session['user_id'],
+            'donor_name': donor_name,
+            'donor_phone': donor_phone,
+            'amount': amount,
+            'utr': utr,
+            'screenshot_url': screenshot_url
+        }).execute()
+        flash("Donation logged successfully! It is pending admin verification.", "success")
+    except Exception as e:
+        # Error handling will guide you if columns are missing
+        flash(f"Error logging donation. Did you add donor_name and donor_phone to Supabase? Error: {str(e)}", "error")
+        
+    return redirect(url_for('intern_dashboard'))
 
 # --- ADMIN DASHBOARD ---
 @app.route('/admin')
@@ -150,8 +184,24 @@ def admin_dashboard():
     interns = [u for u in all_users if u.get('role') == 'intern']
     ambassadors = [u for u in all_users if u.get('role') == 'ambassador']
     
+    # Calculate Leaderboard via funds raised for Admin too
+    donations_data = []
+    try:
+        donations_data = supabase.table('donations').select('*').execute().data
+    except Exception:
+        pass
+        
+    raised_by_user = {}
+    for d in donations_data:
+        uid = d.get('user_id')
+        amt = float(d.get('amount') or 0)
+        raised_by_user[uid] = raised_by_user.get(uid, 0) + amt
+        
+    for u in all_users:
+        u['total_raised'] = raised_by_user.get(u.get('id'), 0)
+        
     leaderboard = sorted([u for u in all_users if u.get('role') != 'admin'], 
-                         key=lambda x: x.get('points', 0), reverse=True)
+                         key=lambda x: x.get('total_raised', 0), reverse=True)
     
     tasks = supabase.table('tasks').select('*').execute().data
     resources = supabase.table('resources').select('*').execute().data

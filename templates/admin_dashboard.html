@@ -84,7 +84,8 @@
             <th style="width: 80px;">Rank</th>
             <th>Name</th>
             <th>Role</th>
-            <th style="text-align: right;">Impact Points</th>
+            <!-- Updated Header to reflect new logic -->
+            <th style="text-align: right;">Total Funds Raised</th>
         </tr>
         {% for leader in leaderboard %}
         <tr>
@@ -95,7 +96,8 @@
                     {{ leader.role | title }}
                 </span>
             </td>
-            <td style="text-align: right; font-weight: 700; color: var(--accent);">{{ leader.points | default('0') }}</td>
+            <!-- Updated to pull total_raised data variable -->
+            <td style="text-align: right; font-weight: 700; color: var(--accent);">₹{{ leader.total_raised | default('0') }}</td>
         </tr>
         {% else %}
         <tr><td colspan="4" style="text-align: center;">No volunteer data available.</td></tr>
