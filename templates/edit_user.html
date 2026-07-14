@@ -28,6 +28,13 @@
                 <option value="ambassador" {% if user.role == 'ambassador' %}selected{% endif %}>Campus Ambassador</option>
             </select>
         </div>
+
+        <!-- Admin Password Reset Section -->
+        <div class="form-group" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <label for="new_password" style="color: var(--accent);">Reset User Password</label>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">Leave this blank if you do not want to change their current password.</p>
+            <input type="text" id="new_password" name="new_password" placeholder="Enter a new password">
+        </div>
         
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
             <button type="submit" class="btn" style="flex: 1;">Save Changes</button>

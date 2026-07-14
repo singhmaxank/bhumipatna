@@ -126,12 +126,19 @@ def add_user():
 def edit_user(user_id):
     if request.method == 'POST':
         try:
-            supabase.table('users').update({
+            update_data = {
                 'full_name': request.form.get('full_name'),
                 'username': request.form.get('username'),
                 'email': request.form.get('email'),
                 'role': request.form.get('role')
-            }).eq('id', user_id).execute()
+            }
+            
+            # Admin Password Reset Logic
+            new_password = request.form.get('new_password')
+            if new_password and new_password.strip() != "":
+                update_data['password_hash'] = new_password
+                
+            supabase.table('users').update(update_data).eq('id', user_id).execute()
             flash("User updated successfully!", "success")
             return redirect(url_for('admin_dashboard'))
         except Exception as e:
@@ -148,10 +155,15 @@ def edit_user(user_id):
 @admin_required
 def delete_user(user_id):
     try:
+        # 1. Delete connected records first (prevents Foreign Key crash)
+        supabase.table('task_completions').delete().eq('user_id', user_id).execute()
+        
+        # 2. Now delete the actual user
         supabase.table('users').delete().eq('id', user_id).execute()
+        
         flash("User deleted successfully!", "success")
     except Exception as e:
-        flash("Error deleting user.", "error")
+        flash("Error deleting user. Check database permissions.", "error")
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/missions/delete/<int:task_id>')
