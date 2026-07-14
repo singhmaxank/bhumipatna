@@ -4,14 +4,16 @@ from functools import wraps
 from supabase import create_client, Client
 
 app = Flask(__name__)
+# Ensure you have a SECRET_KEY set in your Render environment variables!
 app.secret_key = os.environ.get("SECRET_KEY", "fallback-secret-key-string-12345")
 
-# Supabase Client Initialization Pipeline
+# --- SUPABASE CLIENT INITIALIZATION ---
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")  # Make sure this is the service_role key in Render!
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- SYSTEM ACCESS CONTROLLERS ---
+
+# --- SYSTEM ACCESS CONTROLLERS (DECORATORS) ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -29,13 +31,26 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# --- ANCHOR RUNTIME GLOBAL FAVICON HANDLER ---
+
+# --- GLOBAL ROUTES ---
+
 @app.route('/favicon.ico')
 def favicon():
+    """Forces browsers to load the favicon from the root directory."""
     return send_from_directory(os.path.join(app.root_path, 'static', 'img'), 'bhumi_logo.png', mimetype='image/png')
+
+@app.route('/')
+def index():
+    """Root redirect protocol to prevent 404 errors on the base URL."""
+    if 'user_id' in session:
+        if session.get('role') == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('intern_dashboard'))
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Authentication gateway."""
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -46,7 +61,11 @@ def login():
                 session['username'] = res[0]['username']
                 session['name'] = res[0]['full_name']
                 session['role'] = res[0]['role']
-                return redirect(url_for('admin_dashboard' if res[0]['role'] == 'admin' else 'intern_dashboard'))
+                
+                if res[0]['role'] == 'admin':
+                    return redirect(url_for('admin_dashboard'))
+                return redirect(url_for('intern_dashboard'))
+                
             flash("Invalid operational credentials submitted.", "error")
         except Exception as e:
             flash(f"System Authenticator Exception: {str(e)}", "error")
@@ -54,10 +73,13 @@ def login():
 
 @app.route('/logout')
 def logout():
+    """Clear session data and return to login."""
     session.clear()
     return redirect(url_for('login'))
 
-# --- ADMINISTRATIVE WORKSTATION CONTROLLER ---
+
+# --- ADMINISTRATIVE DASHBOARD & REPORTING ---
+
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
@@ -72,13 +94,14 @@ def admin_dashboard():
         approved_donations = [d for d in donations if d['status'] == 'approved']
         total_raised = sum(float(d['amount'] or 0) for d in approved_donations)
         
-        # User dynamic allocation parser
+        # Calculate dynamic metrics for each user
         for u in users:
             u_dons = [d for d in approved_donations if d['user_id'] == u['id']]
             u['total_raised'] = sum(float(d['amount'] or 0) for d in u_dons)
             head = next((h for h in admins if h['id'] == u.get('head_id')), None)
             u['head_name'] = head['full_name'] if head else "Main System Admin"
 
+        # Sort for Top Performers
         leaderboard = sorted([u for u in users if u['role'] in ['intern', 'ambassador']], key=lambda x: x['total_raised'], reverse=True)
         
         return render_template('admin_dashboard.html', interns=interns, ambassadors=ambassadors, total_platform_raised=total_raised, leaderboard=leaderboard)
@@ -86,10 +109,31 @@ def admin_dashboard():
         flash(f"Data Core Read Error: {str(e)}", "error")
         return render_template('admin_dashboard.html', interns=[], ambassadors=[], total_platform_raised=0, leaderboard=[])
 
-# --- ACCOUNT COMPILER CONTROL MODS ---
+@app.route('/admin/export')
+@admin_required
+def export_pdf():
+    """Generates the data set required for the JavaScript PDF builder."""
+    try:
+        all_users = supabase.table('users').select('*').in_('role', ['intern', 'ambassador']).execute().data or []
+        donations = supabase.table('donations').select('*').eq('status', 'approved').execute().data or []
+        
+        for u in all_users:
+            user_donations = [d for d in donations if d.get('user_id') == u.get('id')]
+            u['total_raised'] = sum(float(d.get('amount') or 0) for d in user_donations)
+            
+        all_users = sorted(all_users, key=lambda x: x.get('total_raised', 0), reverse=True)
+        return render_template('export.html', users=all_users)
+    except Exception as e:
+        flash(f"Data Assembly Error: {str(e)}", "error")
+        return redirect(url_for('admin_dashboard'))
+
+
+# --- USER MANAGEMENT & ADMINISTRATION ---
+
 @app.route('/admin/users/add', methods=['GET', 'POST'])
 @admin_required
 def add_user():
+    """Handles new user creation and loads data for the Quick Password Reset form."""
     if request.method == 'POST':
         try:
             insert_data = {
@@ -109,13 +153,17 @@ def add_user():
             flash(f"Write Exception: {str(e)}", "error")
             
     admins = supabase.table('users').select('id, full_name').eq('role', 'admin').execute().data or []
+    
+    # Fetch data for the Quick Reset Dropdown
     all_users = supabase.table('users').select('id, username, full_name').execute().data or []
     all_users = sorted(all_users, key=lambda x: x['full_name'])
+    
     return render_template('add_user.html', admins=admins, all_users=all_users)
 
 @app.route('/admin/users/quick_reset', methods=['POST'])
 @admin_required
 def quick_reset():
+    """Forces an immediate password update for a specific user."""
     user_id = request.form.get('user_id')
     new_password = request.form.get('new_password')
     try:
@@ -164,10 +212,13 @@ def delete_user(user_id):
         flash(f"Erase Error Constraints: {str(e)}", "error")
     return redirect(url_for('admin_dashboard'))
 
-# --- VERIFICATION PROTOCOL QUEUE CONTROLLERS ---
+
+# --- VERIFICATION PROTOCOLS ---
+
 @app.route('/admin/verify')
 @admin_required
 def verify_donations():
+    """Loads all pending logs into the verification matrix."""
     try:
         donations = supabase.table('donations').select('*, users(full_name)').eq('status', 'pending').execute().data or []
         return render_template('admin_verify.html', donations=donations)
@@ -178,6 +229,7 @@ def verify_donations():
 @app.route('/admin/verify/<int:don_id>/<string:status>')
 @admin_required
 def update_status(don_id, status):
+    """Processes approval or rejection of logged donations."""
     if status in ['approved', 'rejected']:
         try:
             supabase.table('donations').update({'status': status}).eq('id', don_id).execute()
@@ -186,28 +238,13 @@ def update_status(don_id, status):
             flash(f"Status Write Exception: {str(e)}", "error")
     return redirect(url_for('verify_donations'))
 
-# --- COMPREHENSIVE COMPRESSION EXPORT (PDF ENGINE DATA) ---
-@app.route('/admin/export')
-@admin_required
-def export_pdf():
-    try:
-        all_users = supabase.table('users').select('*').in_('role', ['intern', 'ambassador']).execute().data or []
-        donations = supabase.table('donations').select('*').eq('status', 'approved').execute().data or []
-        
-        for u in all_users:
-            user_donations = [d for d in donations if d.get('user_id') == u.get('id')]
-            u['total_raised'] = sum(float(d.get('amount') or 0) for d in user_donations)
-            
-        all_users = sorted(all_users, key=lambda x: x.get('total_raised', 0), reverse=True)
-        return render_template('export.html', users=all_users)
-    except Exception as e:
-        flash(f"Data Assembly Error: {str(e)}", "error")
-        return redirect(url_for('admin_dashboard'))
 
-# --- WORKSTATION INTERN LOG COMPILERS ---
+# --- INTERN/AMBASSADOR WORKSTATION ---
+
 @app.route('/dashboard')
 @login_required
 def intern_dashboard():
+    """Main workstation for interns to view progress and log records."""
     u_id = session['user_id']
     try:
         my_donations = supabase.table('donations').select('*').eq('user_id', u_id).execute().data or []
@@ -219,7 +256,8 @@ def intern_dashboard():
         head_name = "Main System Admin"
         if user_meta.get('head_id'):
             head_data = supabase.table('users').select('full_name').eq('id', user_meta['head_id']).execute().data
-            if head_data: head_name = head_data[0]['full_name']
+            if head_data: 
+                head_name = head_data[0]['full_name']
             
         return render_template('intern_dashboard.html', my_donations=my_donations, total_donated=total_donated, head_name=head_name, progress_percent=45, days_left=14)
     except Exception as e:
@@ -229,6 +267,7 @@ def intern_dashboard():
 @app.route('/submit-donation', methods=['POST'])
 @login_required
 def submit_donation():
+    """Handles incoming log records from the intern workstation."""
     try:
         insert_data = {
             'user_id': session['user_id'],
@@ -244,6 +283,7 @@ def submit_donation():
     except Exception as e:
         flash(f"Data Transmission Interrupted: {str(e)}", "error")
     return redirect(url_for('intern_dashboard'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
