@@ -1,107 +1,114 @@
 {% extends 'base.html' %}
+{% block title %}Bhumi Patna Portal - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="section-header">
     <div>
         <h2>Admin Control Panel</h2>
-        <p style="color: var(--text-muted);">Welcome back, {{ session.name }}!</p>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Welcome back, {{ session.name }}!</p>
     </div>
     <a href="/admin/users/add" class="btn">+ Add User</a>
 </div>
 
 <section class="admin-section">
-    <div class="section-header" style="margin-bottom: 0.5rem;">
-        <h3>System Administrators</h3>
+    <div class="section-header" style="margin-bottom: 1rem;">
+        <h3 style="margin: 0;">System Administrators</h3>
     </div>
-    <table class="data-table">
-        <tr>
-            <th>User Details</th>
-            <th>Username</th>
-            <th style="text-align: right;">Actions</th>
-        </tr>
-        {% for admin in admins %}
-        <tr>
-            <td>
-                <strong>{{ admin.full_name }}</strong>
-                <span class="subtext">{{ admin.email }}</span>
-            </td>
-            <td><span class="badge badge-admin">{{ admin.username }}</span></td>
-            <td class="action-cell">
-                <a href="/admin/users/edit/{{ admin.id }}" class="btn btn-small btn-secondary">Edit</a>
-                <a href="/admin/users/delete/{{ admin.id }}" class="btn btn-small btn-danger" onclick="return confirm('Are you sure?');">Delete</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <tr>
+                <th>User Details</th>
+                <th>Username</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+            {% for admin in admins %}
+            <tr>
+                <td>
+                    <strong>{{ admin.full_name }}</strong>
+                    <span class="subtext">{{ admin.email }}</span>
+                </td>
+                <td><span class="badge badge-admin">{{ admin.username }}</span></td>
+                <td class="action-cell">
+                    <a href="/admin/users/edit/{{ admin.id }}" class="btn btn-small btn-secondary">Edit</a>
+                    <a href="/admin/users/delete/{{ admin.id }}" class="btn btn-small btn-danger" onclick="return confirm('Are you sure?');">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 </section>
 
 <div class="grid-2">
     <section class="admin-section" style="margin-bottom: 0;">
         <h3>Interns</h3>
-        <table class="data-table">
-            {% for intern in interns %}
-            <tr>
-                <td>
-                    <strong>{{ intern.full_name }}</strong>
-                    <span class="subtext">{{ intern.email }}</span>
-                </td>
-                <td class="action-cell">
-                    <a href="/admin/users/edit/{{ intern.id }}" class="btn btn-small btn-secondary">Edit</a>
-                    <a href="/admin/users/delete/{{ intern.id }}" class="btn btn-small btn-danger" onclick="return confirm('Delete this intern?');">Delete</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No interns found.</td></tr>
-            {% endfor %}
-        </table>
+        <div class="table-wrapper">
+            <table class="data-table">
+                {% for intern in interns %}
+                <tr>
+                    <td>
+                        <strong>{{ intern.full_name }}</strong>
+                        <span class="subtext">{{ intern.email }}</span>
+                    </td>
+                    <td class="action-cell">
+                        <a href="/admin/users/edit/{{ intern.id }}" class="btn btn-small btn-secondary">Edit</a>
+                        <a href="/admin/users/delete/{{ intern.id }}" class="btn btn-small btn-danger" onclick="return confirm('Delete this intern?');">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No interns found.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
     </section>
 
     <section class="admin-section" style="margin-bottom: 0;">
         <h3>Campus Ambassadors</h3>
-        <table class="data-table">
-            {% for ambassador in ambassadors %}
-            <tr>
-                <td>
-                    <strong>{{ ambassador.full_name }}</strong>
-                    <span class="subtext">{{ ambassador.email }}</span>
-                </td>
-                <td class="action-cell">
-                    <a href="/admin/users/edit/{{ ambassador.id }}" class="btn btn-small btn-secondary">Edit</a>
-                    <a href="/admin/users/delete/{{ ambassador.id }}" class="btn btn-small btn-danger" onclick="return confirm('Delete this ambassador?');">Delete</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No ambassadors found.</td></tr>
-            {% endfor %}
-        </table>
+        <div class="table-wrapper">
+            <table class="data-table">
+                {% for ambassador in ambassadors %}
+                <tr>
+                    <td>
+                        <strong>{{ ambassador.full_name }}</strong>
+                        <span class="subtext">{{ ambassador.email }}</span>
+                    </td>
+                    <td class="action-cell">
+                        <a href="/admin/users/edit/{{ ambassador.id }}" class="btn btn-small btn-secondary">Edit</a>
+                        <a href="/admin/users/delete/{{ ambassador.id }}" class="btn btn-small btn-danger" onclick="return confirm('Delete this ambassador?');">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No ambassadors found.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
     </section>
 </div>
 
 <section class="admin-section">
     <h3>Volunteer Leaderboard</h3>
-    <table class="data-table">
-        <tr>
-            <th style="width: 80px;">Rank</th>
-            <th>Name</th>
-            <th>Role</th>
-            <!-- Updated Header to reflect new logic -->
-            <th style="text-align: right;">Total Funds Raised</th>
-        </tr>
-        {% for leader in leaderboard %}
-        <tr>
-            <td><strong>#{{ loop.index }}</strong></td>
-            <td><strong>{{ leader.full_name }}</strong></td>
-            <td>
-                <span class="badge {% if leader.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}">
-                    {{ leader.role | title }}
-                </span>
-            </td>
-            <!-- Updated to pull total_raised data variable -->
-            <td style="text-align: right; font-weight: 700; color: var(--accent);">₹{{ leader.total_raised | default('0') }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="4" style="text-align: center;">No volunteer data available.</td></tr>
-        {% endfor %}
-    </table>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <tr>
+                <th style="width: 80px;">Rank</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th style="text-align: right;">Total Funds Raised</th>
+            </tr>
+            {% for leader in leaderboard %}
+            <tr>
+                <td><strong>#{{ loop.index }}</strong></td>
+                <td><strong>{{ leader.full_name }}</strong></td>
+                <td>
+                    <span class="badge {% if leader.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}">
+                        {{ leader.role | title }}
+                    </span>
+                </td>
+                <td style="text-align: right; font-weight: 800; color: var(--accent);">₹{{ leader.total_raised | default('0') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No volunteer data available.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
 </section>
 {% endblock %}

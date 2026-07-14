@@ -116,7 +116,7 @@ def intern_dashboard():
             amt = float(d.get('amount') or 0)
             raised_by_user[uid] = raised_by_user.get(uid, 0) + amt
 
-        # Fetch Leaderboard (Sorted by total funds raised instead of points)
+        # Fetch Leaderboard (Sorted by total funds raised)
         all_users = supabase.table('users').select('*').execute().data
         for u in all_users:
             u['total_raised'] = raised_by_user.get(u.get('id'), 0)
@@ -151,7 +151,6 @@ def intern_dashboard():
 @app.route('/submit-donation', methods=['POST'])
 @login_required
 def submit_donation():
-    # Fetching new form fields
     donor_name = request.form.get('donor_name')
     donor_phone = request.form.get('donor_phone')
     amount = request.form.get('amount')
@@ -169,8 +168,7 @@ def submit_donation():
         }).execute()
         flash("Donation logged successfully! It is pending admin verification.", "success")
     except Exception as e:
-        # Error handling will guide you if columns are missing
-        flash(f"Error logging donation. Did you add donor_name and donor_phone to Supabase? Error: {str(e)}", "error")
+        flash(f"Error logging donation. Error: {str(e)}", "error")
         
     return redirect(url_for('intern_dashboard'))
 
@@ -184,7 +182,6 @@ def admin_dashboard():
     interns = [u for u in all_users if u.get('role') == 'intern']
     ambassadors = [u for u in all_users if u.get('role') == 'ambassador']
     
-    # Calculate Leaderboard via funds raised for Admin too
     donations_data = []
     try:
         donations_data = supabase.table('donations').select('*').execute().data

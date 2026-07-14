@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% block title %}Bhumi Patna Portal - Login{% endblock %}
 
 {% block content %}
 <div style="max-width: 420px; margin: 4rem auto;" class="admin-section">
     <div style="text-align: center; margin-bottom: 2rem;">
         <h2>Welcome Back</h2>
-        <p style="color: var(--text-muted);">Sign in to track your impact.</p>
+        <p style="color: var(--text-muted);">Sign in to track your environmental impact.</p>
     </div>
     
     <form method="POST" action="/login">
@@ -19,7 +20,7 @@
         <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Sign In</button>
     </form>
     
-    <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem;">
+    <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem; font-weight: 600;">
         <a href="/forgot-password">Forgot your password?</a>
     </div>
 </div>

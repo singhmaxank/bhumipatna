@@ -1,16 +1,17 @@
 {% extends 'base.html' %}
+{% block title %}Bhumi Patna Portal - Intern Dashboard{% endblock %}
 
 {% block content %}
 <div class="section-header">
     <div>
         <h2>Welcome, {{ session.name }}</h2>
-        <p style="color: var(--text-muted);">
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">
             Role: <span class="badge {% if session.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}">{{ session.role | title }}</span>
         </p>
     </div>
 </div>
 
-<section class="admin-section" style="padding: 1.5rem 2rem;">
+<section class="admin-section" style="padding: 2rem;">
     <div class="progress-container">
         <span>Internship Timeline</span>
         <span style="color: var(--accent);">{{ days_left }} Days Left</span>
@@ -23,8 +24,7 @@
 <div class="grid-2">
     <div style="display: flex; flex-direction: column; gap: 2rem;">
         
-        <div style="display: flex; gap: 1rem;">
-            <!-- Removed the Points box, making Funds Raised the main stat -->
+        <div class="stat-box-container" style="display: flex; gap: 1rem;">
             <div class="stat-box" style="flex: 1;">
                 <span class="stat-label">Total Funds Raised</span>
                 <span class="stat-value" style="color: var(--accent);">₹{{ total_donated }}</span>
@@ -33,10 +33,9 @@
 
         <section class="admin-section" style="margin-bottom: 0;">
             <h3>Log a Donation</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Submit donor details below to track your fundraising progress.</p>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Submit donor details below to track your fundraising progress.</p>
             
             <form action="/submit-donation" method="POST">
-                <!-- NEW DONOR FIELDS -->
                 <div class="form-group">
                     <label>Donor Full Name</label>
                     <input type="text" name="donor_name" placeholder="e.g. Rahul Kumar" required>
@@ -64,65 +63,70 @@
     </div>
 
     <section class="admin-section" style="margin-bottom: 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3>Top Fundraisers</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0;">Top Fundraisers</h3>
             <span class="badge badge-intern">Live</span>
         </div>
-        <table class="data-table">
-            <tr>
-                <th style="width: 60px;">Rank</th>
-                <th>Volunteer Name</th>
-                <th style="text-align: right;">Funds Raised</th>
-            </tr>
-            {% for leader in leaderboard %}
-            <tr>
-                <td><strong>#{{ loop.index }}</strong></td>
-                <td>{{ leader.full_name }}</td>
-                <!-- Updated to show Total Raised instead of points -->
-                <td style="text-align: right; color: var(--accent); font-weight: 700;">₹{{ leader.total_raised | default('0') }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No data available yet.</td></tr>
-            {% endfor %}
-        </table>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <tr>
+                    <th style="width: 60px;">Rank</th>
+                    <th>Volunteer Name</th>
+                    <th style="text-align: right;">Funds Raised</th>
+                </tr>
+                {% for leader in leaderboard %}
+                <tr>
+                    <td><strong>#{{ loop.index }}</strong></td>
+                    <td><strong>{{ leader.full_name }}</strong></td>
+                    <td style="text-align: right; color: var(--accent); font-weight: 800;">₹{{ leader.total_raised | default('0') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No data available yet.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
     </section>
 </div>
 
 <div class="grid-2">
     <section class="admin-section" style="margin-bottom: 0;">
         <h3>Available Missions</h3>
-        <table class="data-table">
-            <tr>
-                <th>Title</th>
-                <th style="text-align: right;">Action</th>
-            </tr>
-            {% for task in tasks %}
-            <tr>
-                <td><strong>{{ task.title }}</strong></td>
-                <td style="text-align: right;"><button class="btn btn-small">View</button></td>
-            </tr>
-            {% else %}
-            <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No missions active right now.</td></tr>
-            {% endfor %}
-        </table>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <tr>
+                    <th>Title</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+                {% for task in tasks %}
+                <tr>
+                    <td><strong>{{ task.title }}</strong></td>
+                    <td style="text-align: right;"><button class="btn btn-small">View</button></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No missions active right now.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
     </section>
 
     <section class="admin-section" style="margin-bottom: 0;">
         <h3>Resources & Materials</h3>
-        <table class="data-table">
-            <tr>
-                <th>Resource Name</th>
-                <th style="text-align: right;">Link</th>
-            </tr>
-            {% for resource in resources %}
-            <tr>
-                <td><strong>{{ resource.title }}</strong></td>
-                <td style="text-align: right;"><a href="{{ resource.url }}" target="_blank" class="btn btn-small btn-secondary">Open</a></td>
-            </tr>
-            {% else %}
-            <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No resources posted yet.</td></tr>
-            {% endfor %}
-        </table>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <tr>
+                    <th>Resource Name</th>
+                    <th style="text-align: right;">Link</th>
+                </tr>
+                {% for resource in resources %}
+                <tr>
+                    <td><strong>{{ resource.title }}</strong></td>
+                    <td style="text-align: right;"><a href="{{ resource.url }}" target="_blank" class="btn btn-small btn-secondary">Open</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No resources posted yet.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
     </section>
 </div>
 {% endblock %}
