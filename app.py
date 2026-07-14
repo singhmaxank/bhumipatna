@@ -80,6 +80,9 @@ def role_required(*roles):
                 return redirect(url_for("login"))
             if session.get("role") not in roles:
                 flash("You do not have permission to view that page.", "error")
+                # Fix: Route users to their correct respective homepages
+                if session.get("role") == "admin":
+                    return redirect(url_for("admin_panel"))
                 return redirect(url_for("dashboard"))
             return view(*args, **kwargs)
         return wrapped
@@ -118,6 +121,9 @@ def verified_total(user_id):
 @app.route("/")
 def index():
     if "user_id" in session:
+        # Fix: Direct admins to the admin panel, everyone else to dashboard
+        if session.get("role") == "admin":
+            return redirect(url_for("admin_panel"))
         return redirect(url_for("dashboard"))
     return redirect(url_for("login"))
 
