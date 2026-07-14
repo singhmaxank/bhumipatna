@@ -2,26 +2,311 @@
 {% block title %}Bhumi Patna Portal - Login{% endblock %}
 
 {% block content %}
-<div class="admin-section" style="max-width: 420px; margin: 4rem auto;">
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <h2>Welcome Back</h2>
-        <p class="subtext" style="font-size: 0.95rem;">Sign in to track your impact.</p>
+<style>
+    /* Override base.html styles specifically for the login page to create a full-screen standalone card */
+    .top-nav { display: none !important; }
+    footer { display: none !important; }
+    
+    body, html { height: 100%; margin: 0; }
+    
+    .main-content {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background-color: var(--bg-main);
+        max-width: 100%;
+    }
+
+    /* --- The Split Card Container --- */
+    .login-split-card {
+        display: flex;
+        width: 100%;
+        max-width: 950px;
+        background: #ffffff;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(5, 150, 105, 0.25);
+    }
+
+    /* --- LEFT SIDE: Brand & NGO Theme --- */
+    .login-brand-side {
+        flex: 1;
+        background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+        padding: 4rem 3rem;
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Geometric background shapes imitating the reference image */
+    .login-brand-side::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%; width: 200%; height: 200%;
+        background: linear-gradient(45deg, rgba(255,255,255,0.03) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.03) 75%, transparent 75%, transparent);
+        background-size: 150px 150px;
+        transform: rotate(-15deg);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .login-brand-logo {
+        height: 70px;
+        margin-bottom: 2rem;
+        filter: brightness(0) invert(1);
+        z-index: 1;
+    }
+    
+    .login-brand-text {
+        font-size: 0.95rem;
+        line-height: 1.7;
+        margin-bottom: 2.5rem;
+        font-weight: 500;
+        opacity: 0.95;
+        z-index: 1;
+    }
+
+    .btn-explore {
+        background: #ffffff;
+        color: #064e3b;
+        padding: 0.85rem 2.5rem;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.3s;
+        z-index: 1;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .btn-explore:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        background: #f0fdf4;
+    }
+
+    /* --- RIGHT SIDE: Login Form --- */
+    .login-form-side {
+        flex: 1.2;
+        padding: 4rem 4rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #ffffff;
+    }
+
+    .login-form-side h2 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #064e3b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .login-subtitle {
+        color: #64748b;
+        font-size: 0.95rem;
+        margin-bottom: 2.5rem;
+        font-weight: 500;
+    }
+
+    .login-form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    /* Dark theme inputs like the reference image */
+    .login-input {
+        width: 100%;
+        padding: 1.1rem 1.25rem;
+        background: #064e3b;
+        border: 2px solid #064e3b;
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .login-input::placeholder {
+        color: rgba(255,255,255,0.6);
+    }
+    .login-input:focus {
+        outline: none;
+        border-color: #10b981;
+        background: #047857;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    }
+
+    .login-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+    }
+
+    .login-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+    
+    .login-checkbox input {
+        accent-color: #059669;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .forgot-link {
+        color: #475569;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .forgot-link:hover {
+        color: #059669;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1.1rem;
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+    }
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(5, 150, 105, 0.3);
+    }
+
+    /* --- MOBILE RESPONSIVENESS --- */
+    @media (max-width: 768px) {
+        .login-split-card {
+            flex-direction: column;
+        }
+        .login-brand-side {
+            padding: 3rem 2rem;
+        }
+        .login-form-side {
+            padding: 2.5rem 1.5rem;
+        }
+        .login-brand-text {
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+    }
+    
+    /* --- MODERN POPUP MODAL --- */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+    .modal-box {
+        background: white;
+        padding: 2.5rem 2rem;
+        border-radius: 16px;
+        text-align: center;
+        max-width: 340px;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        animation: popIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes popIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .modal-box h4 {
+        color: #064e3b;
+        margin-bottom: 0.75rem;
+        font-size: 1.3rem;
+    }
+    .modal-box p {
+        color: #475569;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1.75rem;
+        font-weight: 500;
+    }
+    .modal-btn {
+        background: #059669;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        border: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        width: 100%;
+        transition: background 0.2s;
+    }
+    .modal-btn:hover {
+        background: #047857;
+    }
+</style>
+
+<div class="login-split-card">
+    
+    <!-- LEFT SIDE: NGO Branding -->
+    <div class="login-brand-side">
+        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi Logo" class="login-brand-logo">
+        <p class="login-brand-text">
+            Join our movement to catalyze positive change. Together, we empower communities, nurture the environment, and build a sustainable, equitable future for every generation.
+        </p>
+        <a href="https://www.bhumi.ngo/" target="_blank" class="btn-explore">Explore Bhumi</a>
     </div>
-    
-    <form method="POST" action="/login">
-        <div class="form-group">
-            <label>Username</label>
-            <input type="text" name="username" placeholder="e.g. bhumi" required>
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" name="password" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Sign In</button>
-    </form>
-    
-    <div style="margin-top: 1.5rem; text-align: center;">
-        <a href="/forgot-password" style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">Forgot your password?</a>
+
+    <!-- RIGHT SIDE: Login Form -->
+    <div class="login-form-side">
+        <h2>Log in</h2>
+        <p class="login-subtitle">Welcome back! Please enter your details.</p>
+        
+        <form method="POST" action="/login">
+            <div class="login-form-group">
+                <input type="text" name="username" class="login-input" placeholder="Username" required>
+            </div>
+            <div class="login-form-group">
+                <input type="password" name="password" class="login-input" placeholder="Password" required>
+            </div>
+            
+            <div class="login-options">
+                <label class="login-checkbox">
+                    <input type="checkbox" name="remember">
+                    Remember me
+                </label>
+                <!-- Triggers the modern popup modal below -->
+                <a href="#" class="forgot-link" onclick="document.getElementById('forgotModal').style.display='flex'; return false;">Forgot Password?</a>
+            </div>
+            
+            <button type="submit" class="btn-submit">Login</button>
+        </form>
     </div>
 </div>
+
+<!-- Custom Popup Modal for Forgot Password -->
+<div id="forgotModal" class="modal-overlay">
+    <div class="modal-box">
+        <h4>Password Reset</h4>
+        <p>Please contact your leading head or admin to reset your account password.</p>
+        <button class="modal-btn" onclick="document.getElementById('forgotModal').style.display='none';">Understood</button>
+    </div>
+</div>
+
 {% endblock %}
