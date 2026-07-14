@@ -3,7 +3,9 @@ Initializes bhumi.db from schema.sql and seeds it with a demo admin account,
 a few intern/ambassador accounts, sample tasks, resources and donations.
 Run this once before starting the app:  python init_db.py
 """
-import sqlite3
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import os
 from datetime import date, timedelta
 from werkzeug.security import generate_password_hash
