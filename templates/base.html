@@ -3,21 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Bhumi Patna Portal{% endblock %}</title>
-    
-    <!-- Favicon -->
+    <title>{% block title %}Bhumi Portal{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}" type="image/png">
-    
-    <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
-    <!-- Phosphor Icons (Sleek, modern icons like reference) -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Chart.js for Graphics -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Dark Mode Init Script (Prevents flash) -->
+    <!-- Dark Mode Init -->
     <script>
         if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
@@ -25,115 +20,105 @@
     </script>
 </head>
 <body>
-    <div class="layout-wrapper">
-        <!-- Modern Slim Sidebar -->
+
+    {% if session.get('user_id') %}
+    <!-- DESKTOP SIDEBAR -->
+    <nav class="app-sidebar">
+        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi Logo" class="sidebar-logo">
+        
+        {% if session.get('role') == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i> Dashboard</a>
+            <a href="/admin/verify" class="nav-item {% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i> Verify Data</a>
+            <a href="/admin/users/add" class="nav-item {% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i> Add User</a>
+        {% else %}
+            <a href="/dashboard" class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard</a>
+        {% endif %}
+        
+        <div class="nav-bottom">
+            <a href="/logout" class="nav-item"><i class="ph ph-sign-out"></i> Logout</a>
+        </div>
+    </nav>
+
+    <!-- MOBILE FLOATING NAV -->
+    <nav class="mobile-nav">
+        {% if session.get('role') == 'admin' %}
+            <a href="/admin" class="{% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i></a>
+            <a href="/admin/users/add" class="fab"><i class="ph ph-plus"></i></a>
+            <a href="/admin/verify" class="{% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i></a>
+        {% else %}
+            <a href="/dashboard" class="active"><i class="ph ph-squares-four"></i></a>
+            <a href="#logDonation" class="fab"><i class="ph ph-plus"></i></a>
+            <a href="/logout"><i class="ph ph-sign-out"></i></a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
         {% if session.get('user_id') %}
-        <aside class="slim-sidebar">
-            <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo" class="sidebar-logo">
-            
-            <nav class="nav-menu">
-                {% if session.get('role') == 'admin' %}
-                    <a href="/admin" class="nav-link" title="Dashboard"><i class="ph ph-squares-four"></i></a>
-                    <a href="/admin/verify" class="nav-link" title="Verify Donations"><i class="ph ph-check-circle"></i></a>
-                    <a href="/admin/users/add" class="nav-link" title="Add User"><i class="ph ph-user-plus"></i></a>
-                {% else %}
-                    <a href="/dashboard" class="nav-link" title="Dashboard"><i class="ph ph-squares-four"></i></a>
-                {% endif %}
-            </nav>
-            
-            <div class="nav-bottom">
-                <a href="/logout" class="nav-link" title="Logout"><i class="ph ph-sign-out"></i></a>
+        <header class="top-header">
+            <div class="header-greeting">
+                <h1>Let's start strong!</h1>
+                <p>Welcome back, {{ session.name.split()[0] }}. Here is your overview.</p>
             </div>
-        </aside>
+            
+            <div class="header-actions">
+                <!-- LIVE SEARCH BAR -->
+                <div class="search-box">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="globalSearch" placeholder="Search data..." onkeyup="filterData()">
+                </div>
+                <!-- THEME TOGGLE -->
+                <button class="icon-btn" onclick="toggleTheme()"><i class="ph ph-moon" id="themeIcon"></i></button>
+            </div>
+        </header>
         {% endif %}
 
-        <!-- Main Content -->
-        <main class="main-wrapper">
-            {% if session.get('user_id') %}
-            <!-- Top Header -->
-            <header class="top-header">
-                <div class="header-greeting">
-                    <h1>Hello, {{ session.name.split()[0] }}!</h1>
-                    <p>Explore information and activity about your impact.</p>
-                </div>
-                
-                <div class="header-actions">
-                    <div class="search-bar">
-                        <i class="ph ph-magnifying-glass"></i>
-                        <input type="text" id="globalSearch" placeholder="Search interns or users..." onkeyup="filterTables()">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="padding: 1rem; border-radius: 12px; margin-bottom: 20px; font-weight: 600; background: {% if category=='error' %}#fee2e2; color: #ef4444;{% else %}#d1fae5; color: #059669;{% endif %}">
+                        {{ message }}
                     </div>
-                    <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme">
-                        <i class="ph ph-moon" id="themeIcon"></i>
-                    </button>
-                    <!-- Simulated Notification Bell from reference image -->
-                    <button class="icon-btn"><i class="ph ph-bell"></i></button>
-                </div>
-            </header>
+                {% endfor %}
             {% endif %}
-
-            <!-- Flash Alerts -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div style="padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-weight: 600; 
-                             background: {% if category=='error' %}var(--danger){% else %}var(--success){% endif %}; color: white;">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            {% block content %}{% endblock %}
-        </main>
-    </div>
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
 
     <script>
-        // --- Dark Mode Logic ---
+        // Theme Toggle Logic
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
+            document.getElementById('themeIcon').className = newTheme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
             
-            // Re-render charts if they exist to update text colors
+            // Re-render charts
             if (typeof Chart !== 'undefined') {
                 Chart.helpers.each(Chart.instances, function(instance){
-                    instance.options.color = newTheme === 'dark' ? '#94a3b8' : '#64748b';
-                    instance.options.scales.x.ticks.color = newTheme === 'dark' ? '#94a3b8' : '#64748b';
-                    instance.options.scales.y.ticks.color = newTheme === 'dark' ? '#94a3b8' : '#64748b';
+                    const isDark = newTheme === 'dark';
+                    instance.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
+                    instance.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
                     instance.update();
                 });
             }
         }
-        
-        function updateThemeIcon(theme) {
-            const icon = document.getElementById('themeIcon');
-            if(icon) {
-                icon.className = theme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
-            }
-        }
-        // Set initial icon
-        updateThemeIcon(localStorage.getItem('theme'));
+        document.getElementById('themeIcon').className = localStorage.getItem('theme') === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
 
-        // --- Live Search Logic ---
-        function filterTables() {
+        // Live Search Logic
+        function filterData() {
             let input = document.getElementById("globalSearch").value.toLowerCase();
-            let tables = document.querySelectorAll(".data-table");
-            
+            let tables = document.querySelectorAll("table");
             tables.forEach(table => {
                 let trs = table.getElementsByTagName("tr");
-                for (let i = 1; i < trs.length; i++) { // Skip header row
+                for (let i = 1; i < trs.length; i++) {
                     let tds = trs[i].getElementsByTagName("td");
                     let match = false;
                     for (let j = 0; j < tds.length; j++) {
-                        if (tds[j]) {
-                            let textValue = tds[j].textContent || tds[j].innerText;
-                            if (textValue.toLowerCase().indexOf(input) > -1) {
-                                match = true;
-                                break;
-                            }
-                        }
+                        if (tds[j] && (tds[j].textContent || tds[j].innerText).toLowerCase().indexOf(input) > -1) { match = true; break; }
                     }
                     trs[i].style.display = match ? "" : "none";
                 }

@@ -1,92 +1,74 @@
 {% extends 'base.html' %}
-{% block title %}Bhumi Patna Portal - Intern Dashboard{% endblock %}
+{% block title %}Intern Dashboard{% endblock %}
 
 {% block content %}
-<div class="bento-grid">
+<div class="dashboard-grid">
     
-    <!-- Graphic Card: Doughnut Chart for Progress -->
-    <div class="bento-card span-4" style="align-items: center; justify-content: center; text-align: center;">
+    <!-- Chart Card (Doughnut style from ref) -->
+    <div class="ui-card card-span-4" style="align-items: center; text-align: center;">
         <h3 class="card-title">Tenure Progress</h3>
-        <div style="position: relative; width: 140px; height: 140px; margin: 1rem 0;">
-            <canvas id="progressChart"></canvas>
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 800; font-size: 1.5rem;">
-                {{ progress_percent }}%
+        <div style="position: relative; width: 160px; height: 160px; margin: 20px 0;">
+            <canvas id="doughnutChart"></canvas>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <span style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">{{ progress_percent }}%</span>
             </div>
         </div>
-        <p class="subtext">{{ days_left }} Days Remaining</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">{{ days_left }} Days Remaining</p>
     </div>
 
-    <!-- Info Cards -->
-    <div class="bento-card span-4">
-        <h3 class="card-title">Total Approved Raised</h3>
-        <div class="card-value" style="color: var(--primary);">₹{{ total_donated }}</div>
+    <!-- Highlight Card -->
+    <div class="ui-card card-span-4 card-highlight">
+        <h3 class="card-title">My Total Impact</h3>
+        <div class="card-value">₹{{ total_donated }}</div>
         <div style="margin-top: auto;">
-            <p class="subtext">Reporting Head:</p>
+            <p style="font-size: 0.85rem; opacity: 0.8;">Reporting Head</p>
             <p style="font-weight: 700;">{{ head_name }}</p>
         </div>
     </div>
 
-    <!-- Dark Accent Card: Fast Log -->
-    <div class="bento-card span-4 card-dark">
-        <h3 class="card-title" style="color: rgba(255,255,255,0.7);">Quick Action</h3>
-        <div class="card-value" style="font-size: 1.5rem;">Log Collection</div>
-        <p class="subtext" style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">Record a new donor entry.</p>
-        <a href="#logForm" class="btn" style="background: #ffffff; color: var(--primary-dark); width: 100%;">Add New +</a>
-    </div>
-
-    <!-- Log Donation Form -->
-    <div class="bento-card span-6" id="logForm">
-        <h3 class="card-title">Donor Submission Form</h3>
+    <!-- Submission Form -->
+    <div class="ui-card card-span-4" id="logDonation">
+        <h3 class="card-title" style="margin-bottom: 20px;">Log New Donation</h3>
         <form action="/submit-donation" method="POST">
             <div class="form-group">
-                <label>Donor Full Name</label>
-                <input type="text" name="donor_name" placeholder="e.g. Rahul Kumar" required>
+                <label>Donor Name</label>
+                <input type="text" name="donor_name" class="form-input" required>
             </div>
-            <div class="form-group">
-                <label>Donor Phone Number</label>
-                <input type="text" name="donor_phone" placeholder="10-digit mobile number" required>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
                     <label>Amount (₹)</label>
-                    <input type="number" name="amount" required>
+                    <input type="number" name="amount" class="form-input" required>
                 </div>
-                <div class="form-group">
-                    <label>UTR / Transaction ID</label>
-                    <input type="text" name="utr" required>
+                <div class="form-group" style="flex: 1;">
+                    <label>UTR ID</label>
+                    <input type="text" name="utr" class="form-input" required>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Drive Screenshot Link (Optional)</label>
-                <input type="url" name="screenshot_url" placeholder="https://drive.google.com/file/d/...">
-            </div>
-            <button type="submit" class="btn" style="width: 100%; margin-top: 0.5rem;"><i class="ph ph-paper-plane-tilt" style="margin-right: 8px;"></i> Submit for Verification</button>
+            <button type="submit" class="btn-submit">Submit Entry</button>
         </form>
     </div>
 
-    <!-- My Collections Table -->
-    <div class="bento-card span-6">
-        <h3 class="card-title">My Collection History</h3>
+    <!-- History Table -->
+    <div class="ui-card card-span-12">
+        <h3 class="card-title">Recent Transactions</h3>
         <div class="table-wrapper">
-            <table class="data-table">
+            <table>
                 <thead>
                     <tr>
-                        <th style="width: 45%;">Donor Name</th>
-                        <th style="width: 25%;">Amount</th>
-                        <th style="width: 30%; text-align: right;">Status</th>
+                        <th>Donor</th>
+                        <th>Amount</th>
+                        <th style="text-align: right;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for d in my_donations %}
                     <tr>
-                        <td><strong>{{ d.donor_name }}</strong></td>
+                        <td><strong style="color: var(--text-main);">{{ d.donor_name }}</strong></td>
                         <td><strong style="color: var(--primary);">₹{{ d.amount }}</strong></td>
-                        <td style="text-align: right;">
-                            <span class="badge badge-{{ d.status }}">{{ d.status }}</span>
-                        </td>
+                        <td style="text-align: right;"><span class="badge badge-{{ d.status }}">{{ d.status }}</span></td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">No donations logged yet.</td></tr>
+                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 30px;">No records found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -94,32 +76,22 @@
     </div>
 </div>
 
-<!-- Doughnut Chart Script -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById('progressChart').getContext('2d');
-        const progress = {{ progress_percent }};
-        const remaining = 100 - progress;
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-
+        const ctx = document.getElementById('doughnutChart').getContext('2d');
         new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Completed', 'Remaining'],
                 datasets: [{
-                    data: [progress, remaining],
-                    backgroundColor: ['#059669', isDark ? '#334155' : '#e2e8f0'],
+                    data: [{{ progress_percent }}, 100 - {{ progress_percent }}],
+                    backgroundColor: ['#059669', 'rgba(0,0,0,0.05)'],
                     borderWidth: 0,
-                    cutout: '75%', // Makes the ring thin and modern
+                    cutout: '80%', // Thin, modern ring
                     borderRadius: 20
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                animation: { animateScale: true, animateRotate: true }
-            }
+            options: { plugins: { legend: { display: false }, tooltip: { enabled: false } }, responsive: true }
         });
     });
 </script>
