@@ -1,8 +1,11 @@
 import csv
 import io
 import os
+<<<<<<< HEAD
 import time
 
+=======
+>>>>>>> 0610f2665c1dc97c9fa417fa1c25fff8cef7d841
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
@@ -35,8 +38,13 @@ MANAGEABLE_ROLES = ("intern", "ambassador")
 def get_db():
     if "db" not in g:
         g.db = psycopg2.connect(
+<<<<<<< HEAD
             os.environ.get("DATABASE_URL"),
             cursor_factory=RealDictCursor,
+=======
+            os.environ.get('DATABASE_URL'),
+            cursor_factory=RealDictCursor
+>>>>>>> 0610f2665c1dc97c9fa417fa1c25fff8cef7d841
         )
     return g.db
 
@@ -86,6 +94,10 @@ def role_required(*roles):
                 return redirect(url_for("login"))
             if session.get("role") not in roles:
                 flash("You do not have permission to view that page.", "error")
+<<<<<<< HEAD
+=======
+                # Fix: Route users to their correct respective homepages
+>>>>>>> 0610f2665c1dc97c9fa417fa1c25fff8cef7d841
                 if session.get("role") == "admin":
                     return redirect(url_for("admin_panel"))
                 return redirect(url_for("dashboard"))
@@ -139,6 +151,10 @@ def org_leaderboard(limit=None):
 @app.route("/")
 def index():
     if "user_id" in session:
+<<<<<<< HEAD
+=======
+        # Fix: Direct admins to the admin panel, everyone else to dashboard
+>>>>>>> 0610f2665c1dc97c9fa417fa1c25fff8cef7d841
         if session.get("role") == "admin":
             return redirect(url_for("admin_panel"))
         return redirect(url_for("dashboard"))
