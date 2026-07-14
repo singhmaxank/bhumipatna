@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Bhumi Volunteer Portal{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}">
+</head>
+<body class="min-h-screen">
+
+{% if session.get('user_id') %}
+<header class="soil-panel text-parchment sticky top-0 z-40 shadow-lg" style="color:#f6efdd;">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi logo" class="h-10 w-auto">
+        <div class="leading-tight">
+          <p class="font-display text-lg font-semibold text-white">Bhumi</p>
+          <p class="text-[11px] uppercase tracking-widest" style="color:#e2872a;">Volunteer Portal</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="hidden sm:block text-right leading-tight">
+          <p class="text-sm font-medium text-white">{{ session.get('full_name') }}</p>
+          <p class="text-[11px] uppercase tracking-widest" style="color:#a99c86;">{{ session.get('role') }}</p>
+        </div>
+        <a href="{{ url_for('logout') }}" class="text-xs font-mono-ledger uppercase tracking-wider px-3 py-2 rounded border border-white/25 text-white/90 hover:bg-white/10 transition">Log out</a>
+      </div>
+    </div>
+  </div>
+</header>
+{% endif %}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mt-4 space-y-2">
+      {% for category, message in messages %}
+        <div class="px-4 py-3 rounded-md text-sm font-medium border
+          {% if category == 'error' %} bg-red-50 text-red-800 border-red-200
+          {% else %} bg-green-50 text-green-800 border-green-200 {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+</div>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer class="mt-16 py-8 border-t" style="border-color: var(--rule);">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style="color: var(--ink-soft);">
+    <p>&copy; {{ now.year if now else '2026' }} Bhumi &mdash; bhumi.ngo</p>
+    <p class="font-mono-ledger">Every rupee, accounted for.</p>
+  </div>
+</footer>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -87,6 +87,48 @@ bhumi_portal/
 
 These thresholds live in `RANK_TIERS` at the top of `app.py` — adjust freely.
 
+## Deploying to Render
+
+**Important:** Render's free web services have an *ephemeral* filesystem — any
+file written locally (including the `bhumi.db` SQLite file) is wiped every
+time the service redeploys, restarts, or spins down from inactivity. Pick one
+of the two paths below depending on whether you need the data to stick around.
+
+### Option A — Quick demo (free, data resets periodically)
+Fine for showing someone a live link; not fine for real donation records.
+
+1. Push this project to a GitHub repo.
+2. In the Render dashboard: **New > Web Service** → connect the repo.
+3. Set:
+   - **Build Command:** `pip install -r requirements.txt && python init_db.py --if-missing`
+   - **Start Command:** `gunicorn app:app`
+   - **Instance Type:** Free
+4. Add an environment variable `BHUMI_SECRET_KEY` set to a long random string.
+5. Deploy. You'll get a live `https://your-app.onrender.com` URL.
+6. Know the trade-off: every redeploy/restart re-runs the build command, and since there's no persistent disk on the free tier, `init_db.py` will recreate the database with fresh demo data each time it's missing.
+
+### Option B — Real usage (small paid cost, data persists)
+1. Push to GitHub as above.
+2. Easiest: commit the included `render.yaml` to your repo root, then in Render choose **New > Blueprint** and point it at your repo. It provisions the web service, a 1GB persistent disk mounted at `/var/data`, and generates `BHUMI_SECRET_KEY` for you automatically.
+3. Or configure manually in the dashboard:
+   - **Build Command:** `pip install -r requirements.txt && python init_db.py --if-missing`
+   - **Start Command:** `gunicorn app:app`
+   - **Instance Type:** Starter (or higher — persistent disks require a paid plan)
+   - Add a **Disk**: mount path `/var/data`, size 1GB
+   - Environment variable `DATABASE_PATH` = `/var/data/bhumi.db`
+   - Environment variable `BHUMI_SECRET_KEY` = a long random string
+4. Deploy. The database now lives on the persistent disk, so donation and user records survive restarts and redeploys.
+
+Either way, the free instance type also spins down after ~15 minutes of no
+traffic and takes 30–60 seconds to wake back up on the next request — expected
+free-tier behavior, not a bug. If that cold start is a problem for real users,
+that's another reason to move to a paid instance type.
+
+**Longer term:** if you outgrow SQLite (heavier concurrent write traffic),
+Render's managed Postgres is the natural next step, but that needs a code
+change (swapping `sqlite3` for `psycopg2`/`SQLAlchemy`) — happy to help with
+that migration when you're ready for it.
+
 ## Notes for production deployment
 
 - Swap the Flask dev server for a production WSGI server (gunicorn/uwsgi) behind a reverse proxy.
