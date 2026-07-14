@@ -1,38 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Log in &middot; Bhumi Volunteer Portal{% endblock %}
+{% block title %}Log in &middot; Bhumi Patna Portal{% endblock %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 soil-panel">
-  <div class="w-full max-w-md">
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12" style="background-color: var(--bg);">
+  <div class="w-full max-w-sm">
 
     <div class="flex flex-col items-center mb-8">
-      <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi logo" class="h-24 w-auto mb-4">
-      <h1 class="font-display text-2xl font-semibold text-white">Bhumi Volunteer Portal</h1>
-      <p class="text-sm mt-1" style="color:#c9bda3;">Sign in to track your impact</p>
+      <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi logo" class="h-16 w-auto mb-4">
+      <h1 class="text-xl font-semibold" style="color: var(--ink);">Bhumi Patna Portal</h1>
+      <p class="text-sm mt-1" style="color: var(--ink-soft);">Sign in to track your impact</p>
     </div>
 
-    <div class="ledger-card rounded-lg p-7 sm:p-8">
-      <form method="POST" action="{{ url_for('login') }}" class="space-y-5">
+    <div class="card rounded-lg p-6 sm:p-7">
+      <form method="POST" action="{{ url_for('login') }}" class="space-y-4">
         <div>
-          <label for="username" class="block text-xs font-mono-ledger uppercase tracking-wider mb-1.5" style="color: var(--ink-soft);">Username</label>
+          <label for="username" class="block field-label mb-1.5">Username</label>
           <input type="text" id="username" name="username" required autofocus
-            class="w-full px-3.5 py-2.5 rounded-md border bg-white/60 text-sm"
-            style="border-color: var(--rule);" placeholder="e.g. priya.sharma">
+            class="field-input w-full px-3.5 py-2.5 text-sm"
+            placeholder="e.g. priya.sharma">
         </div>
         <div>
-          <label for="password" class="block text-xs font-mono-ledger uppercase tracking-wider mb-1.5" style="color: var(--ink-soft);">Password</label>
+          <label for="password" class="block field-label mb-1.5">Password</label>
           <input type="password" id="password" name="password" required
-            class="w-full px-3.5 py-2.5 rounded-md border bg-white/60 text-sm"
-            style="border-color: var(--rule);" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+            class="field-input w-full px-3.5 py-2.5 text-sm"
+            placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
         </div>
         <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Sign in</button>
       </form>
+      <p class="text-center text-sm mt-5">
+        <a href="{{ url_for('forgot_password') }}" class="btn-text underline-offset-2 hover:underline">Forgot password?</a>
+      </p>
     </div>
 
-    <p class="text-center text-xs mt-6" style="color:#a99c86;">
-      Interns &amp; Campus Ambassadors are routed to their dashboard automatically.<br>
-      Admins are routed to the Financial Verification &amp; Control Panel.
-    </p>
   </div>
 </div>
 {% endblock %}

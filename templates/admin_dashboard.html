@@ -1,29 +1,127 @@
 {% extends "base.html" %}
-{% block title %}Admin Panel &middot; Bhumi Volunteer Portal{% endblock %}
+{% block title %}Admin Panel &middot; Bhumi Patna Portal{% endblock %}
+
+{% macro user_row(u) %}
+<div class="list-row px-5 py-3.5">
+  <div class="flex items-center justify-between gap-3">
+    <div>
+      <p class="font-medium text-sm" style="color: var(--ink);">{{ u.full_name }}</p>
+      <p class="text-xs" style="color: var(--ink-soft);">@{{ u.username }}{% if u.email %} &middot; {{ u.email }}{% endif %}{% if u.tenure_end %} &middot; ends {{ u.tenure_end }}{% endif %}</p>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button type="button" onclick="document.getElementById('edit-user-{{ u.id }}').classList.toggle('hidden')" class="btn-outline px-3 py-1.5 rounded-md text-xs">Edit</button>
+      <form method="POST" action="{{ url_for('delete_user', user_id=u.id) }}" onsubmit="return confirm('Remove {{ u.full_name }}\'s account? This also deletes their donation history.');">
+        <button type="submit" class="btn-danger-outline px-3 py-1.5 rounded-md text-xs">Delete</button>
+      </form>
+    </div>
+  </div>
+
+  <form id="edit-user-{{ u.id }}" method="POST" action="{{ url_for('edit_user', user_id=u.id) }}" class="hidden mt-3 p-4 rounded-md space-y-3" style="background: var(--bg); border: 1px solid var(--border);">
+    <div class="grid sm:grid-cols-2 gap-3">
+      <div>
+        <label class="block field-label mb-1">Full name</label>
+        <input type="text" name="full_name" value="{{ u.full_name }}" required class="field-input w-full px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block field-label mb-1">Username</label>
+        <input type="text" name="username" value="{{ u.username }}" required class="field-input w-full px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block field-label mb-1">Role</label>
+        <select name="role" required class="field-input w-full px-3 py-2 text-sm">
+          <option value="intern" {% if u.role == 'intern' %}selected{% endif %}>Intern</option>
+          <option value="ambassador" {% if u.role == 'ambassador' %}selected{% endif %}>Campus Ambassador</option>
+        </select>
+      </div>
+      <div>
+        <label class="block field-label mb-1">Email</label>
+        <input type="email" name="email" value="{{ u.email or '' }}" class="field-input w-full px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block field-label mb-1">Phone</label>
+        <input type="text" name="phone" value="{{ u.phone or '' }}" class="field-input w-full px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block field-label mb-1">Reset password (optional)</label>
+        <input type="text" name="password" placeholder="Leave blank to keep current" class="field-input w-full px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block field-label mb-1">Tenure start</label>
+        <input type="date" name="tenure_start" value="{{ u.tenure_start or '' }}" class="field-input w-full px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block field-label mb-1">Tenure end</label>
+        <input type="date" name="tenure_end" value="{{ u.tenure_end or '' }}" class="field-input w-full px-3 py-2 text-sm">
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button type="submit" class="btn-primary px-4 py-2 rounded-md text-xs">Save changes</button>
+      <button type="button" onclick="document.getElementById('edit-user-{{ u.id }}').classList.add('hidden')" class="btn-outline px-4 py-2 rounded-md text-xs">Cancel</button>
+    </div>
+  </form>
+</div>
+{% endmacro %}
+
+{% macro create_user_form(role_value, role_label, action_id) %}
+<form method="POST" action="{{ url_for('create_user') }}" class="card rounded-lg p-5 mt-4 space-y-3">
+  <input type="hidden" name="role" value="{{ role_value }}">
+  <div>
+    <label class="block field-label mb-1">Full name</label>
+    <input type="text" name="full_name" required class="field-input w-full px-3 py-2 text-sm">
+  </div>
+  <div>
+    <label class="block field-label mb-1">Username</label>
+    <input type="text" name="username" required class="field-input w-full px-3 py-2 text-sm">
+  </div>
+  <div>
+    <label class="block field-label mb-1">Temporary password</label>
+    <input type="text" name="password" required class="field-input w-full px-3 py-2 text-sm">
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block field-label mb-1">Tenure start</label>
+      <input type="date" name="tenure_start" class="field-input w-full px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block field-label mb-1">Tenure end</label>
+      <input type="date" name="tenure_end" class="field-input w-full px-3 py-2 text-sm">
+    </div>
+  </div>
+  <div>
+    <label class="block field-label mb-1">Email (used for self-service password reset)</label>
+    <input type="email" name="email" class="field-input w-full px-3 py-2 text-sm">
+  </div>
+  <div>
+    <label class="block field-label mb-1">Phone (optional)</label>
+    <input type="text" name="phone" class="field-input w-full px-3 py-2 text-sm">
+  </div>
+  <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Create {{ role_label }} account</button>
+</form>
+{% endmacro %}
 
 {% block content %}
 
-<section class="soil-panel text-white">
+<section class="page-banner">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <p class="text-[11px] uppercase tracking-widest flame-bullet" style="color:#e2872a;">Admin control panel</p>
-    <h1 class="font-display text-2xl sm:text-3xl font-semibold mt-1">Financial verification &amp; oversight</h1>
+    <p class="text-xs font-semibold uppercase tracking-wide" style="color: var(--accent);">Admin control panel</p>
+    <h1 class="text-2xl sm:text-3xl font-semibold mt-1" style="color: var(--ink);">Financial verification &amp; oversight</h1>
 
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6">
-      <div class="bg-white/10 rounded-lg p-4">
-        <p class="text-[10px] uppercase tracking-wider" style="color:#c9bda3;">Pending review</p>
-        <p class="font-mono-ledger text-2xl font-semibold mt-1">{{ stats.pending_count }}</p>
+      <div class="stat-tile p-4">
+        <p class="text-[10px] uppercase tracking-wide" style="color: var(--ink-soft);">Pending review</p>
+        <p class="text-2xl font-semibold mt-1" style="color: var(--ink);">{{ stats.pending_count }}</p>
       </div>
-      <div class="bg-white/10 rounded-lg p-4">
-        <p class="text-[10px] uppercase tracking-wider" style="color:#c9bda3;">Approved</p>
-        <p class="font-mono-ledger text-2xl font-semibold mt-1">{{ stats.approved_count }}</p>
+      <div class="stat-tile p-4">
+        <p class="text-[10px] uppercase tracking-wide" style="color: var(--ink-soft);">Approved</p>
+        <p class="text-2xl font-semibold mt-1" style="color: var(--ink);">{{ stats.approved_count }}</p>
       </div>
-      <div class="bg-white/10 rounded-lg p-4">
-        <p class="text-[10px] uppercase tracking-wider" style="color:#c9bda3;">Rejected</p>
-        <p class="font-mono-ledger text-2xl font-semibold mt-1">{{ stats.rejected_count }}</p>
+      <div class="stat-tile p-4">
+        <p class="text-[10px] uppercase tracking-wide" style="color: var(--ink-soft);">Rejected</p>
+        <p class="text-2xl font-semibold mt-1" style="color: var(--ink);">{{ stats.rejected_count }}</p>
       </div>
-      <div class="bg-white/10 rounded-lg p-4">
-        <p class="text-[10px] uppercase tracking-wider" style="color:#c9bda3;">Verified total</p>
-        <p class="font-mono-ledger text-2xl font-semibold mt-1">{{ stats.verified_total|inr }}</p>
+      <div class="stat-tile p-4">
+        <p class="text-[10px] uppercase tracking-wide" style="color: var(--ink-soft);">Verified total</p>
+        <p class="text-2xl font-semibold mt-1" style="color: var(--ink);">{{ stats.verified_total|inr }}</p>
       </div>
     </div>
   </div>
@@ -31,35 +129,37 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <div class="flex items-center justify-between mt-6 flex-wrap gap-3">
-    <nav class="flex gap-6 border-b overflow-x-auto flex-1" style="border-color: var(--rule);">
+    <nav class="flex gap-6 border-b overflow-x-auto flex-1" style="border-color: var(--border);">
       <button class="tab-btn active py-3 px-1 whitespace-nowrap" data-tab="verify">Verification Hub</button>
-      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="volunteers">Volunteers</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="interns">Interns</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="ambassadors">Campus Ambassadors</button>
       <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="missions">Missions</button>
       <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="resources">Resources</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="leaderboard">Leaderboard</button>
     </nav>
     <a href="{{ url_for('export_csv') }}" class="btn-primary px-4 py-2 rounded-md text-sm whitespace-nowrap">&darr; Export ledger CSV</a>
   </div>
 
   <!-- Verification hub -->
   <div id="tab-verify" class="tab-panel py-8">
-    <div class="ledger-card rounded-lg divide-y" style="border-color: var(--rule);">
+    <div class="list-card rounded-lg">
       {% for d in donations %}
-      <div class="ledger-row px-5 py-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+      <div class="list-row px-5 py-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <p class="font-medium text-sm">{{ d.donor_name }}</p>
+            <p class="font-medium text-sm" style="color: var(--ink);">{{ d.donor_name }}</p>
             <span class="text-xs" style="color: var(--ink-soft);">via {{ d.full_name }} ({{ d.role }})</span>
           </div>
-          <p class="font-mono-ledger text-lg mt-0.5">{{ d.amount|inr }}</p>
-          <a href="{{ d.drive_link }}" target="_blank" rel="noopener" class="text-xs underline mt-1 inline-block" style="color: var(--marigold-dark, var(--marigold));">View verification screenshot &rarr;</a>
+          <p class="text-lg mt-0.5 font-semibold" style="color: var(--ink);">{{ d.amount|inr }}</p>
+          <a href="{{ d.drive_link }}" target="_blank" rel="noopener" class="text-xs underline mt-1 inline-block" style="color: var(--accent);">View verification screenshot &rarr;</a>
           <p class="text-xs mt-1" style="color: var(--ink-soft);">Submitted {{ d.submitted_at }}</p>
           {% if d.status == 'rejected' and d.admin_note %}
-          <p class="text-xs mt-2 px-2.5 py-1.5 rounded inline-block" style="background: rgba(181,67,45,0.07); color: var(--stamp-red);">Note: {{ d.admin_note }}</p>
+          <p class="text-xs mt-2 px-2.5 py-1.5 rounded inline-block" style="background: var(--red-soft); color: var(--red);">Note: {{ d.admin_note }}</p>
           {% endif %}
         </div>
 
         <div class="flex flex-col items-start sm:items-end gap-2 shrink-0">
-          <span class="stamp stamp-{{ d.status }}">{{ d.status }}</span>
+          <span class="badge badge-{{ d.status }}">{{ d.status }}</span>
           {% if d.status == 'pending' %}
           <div class="flex gap-2 mt-1">
             <form method="POST" action="{{ url_for('review_donation', donation_id=d.id) }}">
@@ -70,7 +170,7 @@
           </div>
           <form id="reject-{{ d.id }}" method="POST" action="{{ url_for('review_donation', donation_id=d.id) }}" class="hidden w-full sm:w-64 mt-2 space-y-2">
             <input type="hidden" name="decision" value="rejected">
-            <textarea name="admin_note" rows="2" placeholder="e.g. Blurry image link" required class="w-full text-xs px-2.5 py-2 rounded-md border" style="border-color: var(--rule);"></textarea>
+            <textarea name="admin_note" rows="2" placeholder="e.g. Blurry image link" required class="field-input w-full text-xs px-2.5 py-2"></textarea>
             <button type="submit" class="w-full btn-danger-outline py-1.5 rounded-md text-xs">Confirm rejection</button>
           </form>
           {% endif %}
@@ -82,60 +182,37 @@
     </div>
   </div>
 
-  <!-- Volunteers -->
-  <div id="tab-volunteers" class="tab-panel py-8 hidden grid lg:grid-cols-5 gap-6">
+  <!-- Interns -->
+  <div id="tab-interns" class="tab-panel py-8 hidden grid lg:grid-cols-5 gap-6">
     <div class="lg:col-span-2">
-      <h2 class="font-display text-lg font-semibold flame-bullet">Provision new account</h2>
-      <form method="POST" action="{{ url_for('create_user') }}" class="ledger-card rounded-lg p-5 mt-4 space-y-3">
-        <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Full name</label>
-          <input type="text" name="full_name" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
-        </div>
-        <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Username</label>
-          <input type="text" name="username" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
-        </div>
-        <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Temporary password</label>
-          <input type="text" name="password" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
-        </div>
-        <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Role</label>
-          <select name="role" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
-            <option value="intern">Intern</option>
-            <option value="ambassador">Campus Ambassador</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Tenure start</label>
-            <input type="date" name="tenure_start" class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
-          </div>
-          <div>
-            <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Tenure end</label>
-            <input type="date" name="tenure_end" class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Email (optional)</label>
-          <input type="email" name="email" class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
-        </div>
-        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Create account</button>
-      </form>
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Add an intern</h2>
+      {{ create_user_form('intern', 'intern', 'intern') }}
     </div>
-
     <div class="lg:col-span-3">
-      <h2 class="font-display text-lg font-semibold flame-bullet">All volunteers</h2>
-      <div class="ledger-card rounded-lg mt-4 divide-y" style="border-color: var(--rule);">
-        {% for u in users %}
-        <div class="ledger-row px-5 py-3.5 flex items-center justify-between gap-3">
-          <div>
-            <p class="font-medium text-sm">{{ u.full_name }}</p>
-            <p class="text-xs" style="color: var(--ink-soft);">@{{ u.username }} &middot; {{ u.role|capitalize }}{% if u.tenure_end %} &middot; ends {{ u.tenure_end }}{% endif %}</p>
-          </div>
-        </div>
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">All interns</h2>
+      <div class="list-card rounded-lg mt-4">
+        {% for u in interns %}
+          {{ user_row(u) }}
         {% else %}
-        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No volunteer accounts yet.</p>
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No interns added yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Campus Ambassadors -->
+  <div id="tab-ambassadors" class="tab-panel py-8 hidden grid lg:grid-cols-5 gap-6">
+    <div class="lg:col-span-2">
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Add a campus ambassador</h2>
+      {{ create_user_form('ambassador', 'campus ambassador', 'ambassador') }}
+    </div>
+    <div class="lg:col-span-3">
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">All campus ambassadors</h2>
+      <div class="list-card rounded-lg mt-4">
+        {% for u in ambassadors %}
+          {{ user_row(u) }}
+        {% else %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No campus ambassadors added yet.</p>
         {% endfor %}
       </div>
     </div>
@@ -144,31 +221,59 @@
   <!-- Missions -->
   <div id="tab-missions" class="tab-panel py-8 hidden grid lg:grid-cols-5 gap-6">
     <div class="lg:col-span-2">
-      <h2 class="font-display text-lg font-semibold flame-bullet">Publish new mission</h2>
-      <form method="POST" action="{{ url_for('create_task') }}" class="ledger-card rounded-lg p-5 mt-4 space-y-3">
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Publish new mission</h2>
+      <form method="POST" action="{{ url_for('create_task') }}" class="card rounded-lg p-5 mt-4 space-y-3">
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Title</label>
-          <input type="text" name="title" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
+          <label class="block field-label mb-1">Title</label>
+          <input type="text" name="title" required class="field-input w-full px-3 py-2 text-sm">
         </div>
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Description</label>
-          <textarea name="description" rows="3" class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);"></textarea>
+          <label class="block field-label mb-1">Description</label>
+          <textarea name="description" rows="3" class="field-input w-full px-3 py-2 text-sm"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Deadline</label>
-          <input type="date" name="deadline" class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
+          <label class="block field-label mb-1">Deadline</label>
+          <input type="date" name="deadline" class="field-input w-full px-3 py-2 text-sm">
         </div>
         <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Publish to all volunteers</button>
       </form>
     </div>
     <div class="lg:col-span-3">
-      <h2 class="font-display text-lg font-semibold flame-bullet">Active missions</h2>
-      <div class="ledger-card rounded-lg mt-4 divide-y" style="border-color: var(--rule);">
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Active missions</h2>
+      <div class="list-card rounded-lg mt-4">
         {% for t in tasks %}
-        <div class="ledger-row px-5 py-3.5">
-          <p class="font-medium text-sm">{{ t.title }}</p>
-          <p class="text-xs mt-1" style="color: var(--ink-soft);">{{ t.description }}</p>
-          {% if t.deadline %}<p class="text-xs mt-1 font-mono-ledger" style="color: var(--ink-soft);">Due {{ t.deadline }}</p>{% endif %}
+        <div class="list-row px-5 py-3.5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="font-medium text-sm" style="color: var(--ink);">{{ t.title }}</p>
+              <p class="text-xs mt-1" style="color: var(--ink-soft);">{{ t.description }}</p>
+              {% if t.deadline %}<p class="text-xs mt-1" style="color: var(--ink-soft);">Due {{ t.deadline }}</p>{% endif %}
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" onclick="document.getElementById('edit-task-{{ t.id }}').classList.toggle('hidden')" class="btn-outline px-3 py-1.5 rounded-md text-xs">Edit</button>
+              <form method="POST" action="{{ url_for('delete_task', task_id=t.id) }}" onsubmit="return confirm('Delete this mission?');">
+                <button type="submit" class="btn-danger-outline px-3 py-1.5 rounded-md text-xs">Delete</button>
+              </form>
+            </div>
+          </div>
+          <form id="edit-task-{{ t.id }}" method="POST" action="{{ url_for('edit_task', task_id=t.id) }}" class="hidden mt-3 p-4 rounded-md space-y-3" style="background: var(--bg); border: 1px solid var(--border);">
+            <div>
+              <label class="block field-label mb-1">Title</label>
+              <input type="text" name="title" value="{{ t.title }}" required class="field-input w-full px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block field-label mb-1">Description</label>
+              <textarea name="description" rows="3" class="field-input w-full px-3 py-2 text-sm">{{ t.description or '' }}</textarea>
+            </div>
+            <div>
+              <label class="block field-label mb-1">Deadline</label>
+              <input type="date" name="deadline" value="{{ t.deadline or '' }}" class="field-input w-full px-3 py-2 text-sm">
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" class="btn-primary px-4 py-2 rounded-md text-xs">Save changes</button>
+              <button type="button" onclick="document.getElementById('edit-task-{{ t.id }}').classList.add('hidden')" class="btn-outline px-4 py-2 rounded-md text-xs">Cancel</button>
+            </div>
+          </form>
         </div>
         {% else %}
         <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No missions published yet.</p>
@@ -180,38 +285,83 @@
   <!-- Resources -->
   <div id="tab-resources" class="tab-panel py-8 hidden grid lg:grid-cols-5 gap-6">
     <div class="lg:col-span-2">
-      <h2 class="font-display text-lg font-semibold flame-bullet">Add resource</h2>
-      <form method="POST" action="{{ url_for('create_resource') }}" class="ledger-card rounded-lg p-5 mt-4 space-y-3">
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Add resource</h2>
+      <form method="POST" action="{{ url_for('create_resource') }}" class="card rounded-lg p-5 mt-4 space-y-3">
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Title</label>
-          <input type="text" name="title" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
+          <label class="block field-label mb-1">Title</label>
+          <input type="text" name="title" required class="field-input w-full px-3 py-2 text-sm">
         </div>
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Category</label>
-          <input type="text" name="category" required placeholder="Pitch Deck / Branding / Social Media" class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
+          <label class="block field-label mb-1">Category</label>
+          <input type="text" name="category" required placeholder="Pitch Deck / Branding / Social Media" class="field-input w-full px-3 py-2 text-sm">
         </div>
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1" style="color: var(--ink-soft);">Link</label>
-          <input type="url" name="link" required placeholder="https://drive.google.com/..." class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);">
+          <label class="block field-label mb-1">Link</label>
+          <input type="url" name="link" required placeholder="https://drive.google.com/..." class="field-input w-full px-3 py-2 text-sm">
         </div>
         <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Add to library</button>
       </form>
     </div>
     <div class="lg:col-span-3">
-      <h2 class="font-display text-lg font-semibold flame-bullet">Resource library</h2>
-      <div class="ledger-card rounded-lg mt-4 divide-y" style="border-color: var(--rule);">
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Resource library</h2>
+      <div class="list-card rounded-lg mt-4">
         {% for r in resources %}
-        <div class="ledger-row px-5 py-3.5 flex items-center justify-between gap-3">
-          <div>
-            <p class="text-[10px] uppercase tracking-wider font-mono-ledger" style="color: var(--marigold-dark, var(--marigold));">{{ r.category }}</p>
-            <p class="font-medium text-sm mt-0.5">{{ r.title }}</p>
+        <div class="list-row px-5 py-3.5">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] uppercase tracking-wide font-semibold" style="color: var(--accent);">{{ r.category }}</p>
+              <p class="font-medium text-sm mt-0.5" style="color: var(--ink);">{{ r.title }}</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <a href="{{ r.link }}" target="_blank" rel="noopener" class="text-xs underline" style="color: var(--accent);">Open &rarr;</a>
+              <button type="button" onclick="document.getElementById('edit-resource-{{ r.id }}').classList.toggle('hidden')" class="btn-outline px-3 py-1.5 rounded-md text-xs">Edit</button>
+              <form method="POST" action="{{ url_for('delete_resource', resource_id=r.id) }}" onsubmit="return confirm('Remove this resource?');">
+                <button type="submit" class="btn-danger-outline px-3 py-1.5 rounded-md text-xs">Delete</button>
+              </form>
+            </div>
           </div>
-          <a href="{{ r.link }}" target="_blank" rel="noopener" class="text-xs underline shrink-0" style="color: var(--marigold-dark, var(--marigold));">Open &rarr;</a>
+          <form id="edit-resource-{{ r.id }}" method="POST" action="{{ url_for('edit_resource', resource_id=r.id) }}" class="hidden mt-3 p-4 rounded-md space-y-3" style="background: var(--bg); border: 1px solid var(--border);">
+            <div>
+              <label class="block field-label mb-1">Title</label>
+              <input type="text" name="title" value="{{ r.title }}" required class="field-input w-full px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block field-label mb-1">Category</label>
+              <input type="text" name="category" value="{{ r.category }}" required class="field-input w-full px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block field-label mb-1">Link</label>
+              <input type="url" name="link" value="{{ r.link }}" required class="field-input w-full px-3 py-2 text-sm">
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" class="btn-primary px-4 py-2 rounded-md text-xs">Save changes</button>
+              <button type="button" onclick="document.getElementById('edit-resource-{{ r.id }}').classList.add('hidden')" class="btn-outline px-4 py-2 rounded-md text-xs">Cancel</button>
+            </div>
+          </form>
         </div>
         {% else %}
         <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No resources added yet.</p>
         {% endfor %}
       </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div id="tab-leaderboard" class="tab-panel py-8 hidden">
+    <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Org-wide leaderboard</h2>
+    <div class="list-card rounded-lg mt-4 max-w-2xl">
+      {% for row in leaderboard %}
+      <div class="list-row px-5 py-4 flex items-center gap-4">
+        <span class="text-base font-semibold w-6 text-center" style="color: var(--accent);">{{ loop.index }}</span>
+        <div class="flex-1">
+          <p class="font-medium text-sm" style="color: var(--ink);">{{ row.full_name }}</p>
+          <p class="text-xs capitalize" style="color: var(--ink-soft);">{{ row.role }}</p>
+        </div>
+        <span class="font-semibold" style="color: var(--ink);">{{ row.total|inr }}</span>
+      </div>
+      {% else %}
+      <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No verified donations yet.</p>
+      {% endfor %}
     </div>
   </div>
 

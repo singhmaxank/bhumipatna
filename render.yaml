@@ -2,15 +2,11 @@ services:
   - type: web
     name: bhumi-portal
     runtime: python
-    plan: starter          # persistent disks require a paid plan (free plan has no disk support)
-    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt && python init_db.py --if-missing"
+    plan: starter
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
     startCommand: "python -m gunicorn app:app --bind 0.0.0.0:$PORT"
     envVars:
       - key: BHUMI_SECRET_KEY
         generateValue: true
-      - key: DATABASE_PATH
-        value: /var/data/bhumi.db
-    disk:
-      name: bhumi-data
-      mountPath: /var/data
-      sizeGB: 1
+      - key: DATABASE_URL
+        sync: false   # set this to your Supabase/PostgreSQL connection string in the Render dashboard

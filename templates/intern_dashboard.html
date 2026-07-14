@@ -1,50 +1,50 @@
 {% extends "base.html" %}
-{% block title %}Dashboard &middot; Bhumi Volunteer Portal{% endblock %}
+{% block title %}Dashboard &middot; Bhumi Patna Portal{% endblock %}
 
 {% block content %}
 
 <!-- Hero: countdown + rank -->
-<section class="soil-panel text-white">
+<section class="page-banner">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid md:grid-cols-3 gap-6">
 
     <div class="md:col-span-2">
-      <p class="text-[11px] uppercase tracking-widest flame-bullet" style="color:#e2872a;">Tenure countdown</p>
-      <h1 class="font-display text-2xl sm:text-3xl font-semibold mt-1">Hi {{ user.full_name.split(' ')[0] }}, here's where things stand</h1>
+      <p class="text-xs font-semibold uppercase tracking-wide" style="color: var(--accent);">Tenure countdown</p>
+      <h1 class="text-2xl sm:text-3xl font-semibold mt-1" style="color: var(--ink);">Hi {{ user.full_name.split(' ')[0] }}, here's where things stand</h1>
 
       {% if user.tenure_end %}
       <div id="countdown" data-end="{{ user.tenure_end }}" class="mt-5 grid grid-cols-4 gap-2 sm:gap-4 max-w-md">
-        <div class="bg-white/10 rounded-lg px-2 py-3 text-center">
-          <p id="cd-days" class="font-mono-ledger text-2xl sm:text-3xl font-semibold">--</p>
-          <p class="text-[10px] uppercase tracking-wider" style="color:#c9bda3;">Days</p>
+        <div class="stat-tile px-2 py-3 text-center">
+          <p id="cd-days" class="text-2xl sm:text-3xl font-semibold" style="color: var(--ink);">--</p>
+          <p class="text-[10px] uppercase tracking-wide" style="color: var(--ink-soft);">Days</p>
         </div>
-        <div class="bg-white/10 rounded-lg px-2 py-3 text-center">
-          <p id="cd-hours" class="font-mono-ledger text-2xl sm:text-3xl font-semibold">--</p>
-          <p class="text-[10px] uppercase tracking-wider" style="color:#c9bda3;">Hours</p>
+        <div class="stat-tile px-2 py-3 text-center">
+          <p id="cd-hours" class="text-2xl sm:text-3xl font-semibold" style="color: var(--ink);">--</p>
+          <p class="text-[10px] uppercase tracking-wide" style="color: var(--ink-soft);">Hours</p>
         </div>
-        <div class="bg-white/10 rounded-lg px-2 py-3 text-center">
-          <p id="cd-mins" class="font-mono-ledger text-2xl sm:text-3xl font-semibold">--</p>
-          <p class="text-[10px] uppercase tracking-wider" style="color:#c9bda3;">Mins</p>
+        <div class="stat-tile px-2 py-3 text-center">
+          <p id="cd-mins" class="text-2xl sm:text-3xl font-semibold" style="color: var(--ink);">--</p>
+          <p class="text-[10px] uppercase tracking-wide" style="color: var(--ink-soft);">Mins</p>
         </div>
-        <div class="bg-white/10 rounded-lg px-2 py-3 text-center">
-          <p id="cd-secs" class="font-mono-ledger text-2xl sm:text-3xl font-semibold">--</p>
-          <p class="text-[10px] uppercase tracking-wider" style="color:#c9bda3;">Secs</p>
+        <div class="stat-tile px-2 py-3 text-center">
+          <p id="cd-secs" class="text-2xl sm:text-3xl font-semibold" style="color: var(--ink);">--</p>
+          <p class="text-[10px] uppercase tracking-wide" style="color: var(--ink-soft);">Secs</p>
         </div>
       </div>
-      <p id="cd-ended" class="mt-4 text-sm hidden" style="color:#e2872a;">Your current tenure window has ended. Reach out to your coordinator about renewal.</p>
-      <p class="text-xs mt-3" style="color:#a99c86;">Tenure ends {{ user.tenure_end }}</p>
+      <p id="cd-ended" class="mt-4 text-sm hidden" style="color: var(--accent);">Your current tenure window has ended. Reach out to your coordinator about renewal.</p>
+      <p class="text-xs mt-3" style="color: var(--ink-soft);">Tenure ends {{ user.tenure_end }}</p>
       {% else %}
-      <p class="mt-5 text-sm" style="color:#c9bda3;">No tenure end-date has been set for your account yet.</p>
+      <p class="mt-5 text-sm" style="color: var(--ink-soft);">No tenure end-date has been set for your account yet.</p>
       {% endif %}
     </div>
 
-    <div class="ledger-card rounded-lg p-5">
-      <p class="text-[11px] font-mono-ledger uppercase tracking-widest" style="color: var(--ink-soft);">Your rank</p>
+    <div class="card rounded-lg p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide" style="color: var(--ink-soft);">Your rank</p>
       <div class="flex items-center justify-between mt-2">
-        <span class="stamp stamp-{{ rank_label.lower() }} text-sm">{{ rank_label }}</span>
-        <span class="font-mono-ledger font-semibold">{{ total|inr }}</span>
+        <span class="badge badge-{{ rank_label.lower() }} text-sm">{{ rank_label }}</span>
+        <span class="font-semibold" style="color: var(--ink);">{{ total|inr }}</span>
       </div>
-      <div class="torch-meter mt-4">
-        <div class="torch-meter-fill" style="width: {{ progress }}%;"></div>
+      <div class="progress-track mt-4">
+        <div class="progress-fill" style="width: {{ progress }}%;"></div>
       </div>
       {% if next_floor %}
       <p class="text-xs mt-2" style="color: var(--ink-soft);">
@@ -59,7 +59,7 @@
 
 <!-- Tabs -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <nav class="flex gap-6 border-b mt-6 overflow-x-auto" style="border-color: var(--rule);">
+  <nav class="flex gap-6 border-b mt-6 overflow-x-auto" style="border-color: var(--border);">
     <button class="tab-btn active py-3 px-1 whitespace-nowrap" data-tab="donations">Donations</button>
     <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="missions">Missions</button>
     <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="resources">Resource Library</button>
@@ -69,41 +69,41 @@
   <!-- Donations tab -->
   <div id="tab-donations" class="tab-panel py-8 grid lg:grid-cols-5 gap-6">
     <div class="lg:col-span-2">
-      <h2 class="font-display text-lg font-semibold flame-bullet">Log a new donation</h2>
-      <form method="POST" action="{{ url_for('submit_donation') }}" class="ledger-card rounded-lg p-5 mt-4 space-y-4">
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Log a new donation</h2>
+      <form method="POST" action="{{ url_for('submit_donation') }}" class="card rounded-lg p-5 mt-4 space-y-4">
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1.5" style="color: var(--ink-soft);">Donor name</label>
-          <input type="text" name="donor_name" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);" placeholder="Rakesh Gupta">
+          <label class="block field-label mb-1.5">Donor name</label>
+          <input type="text" name="donor_name" required class="field-input w-full px-3 py-2 text-sm" placeholder="Rakesh Gupta">
         </div>
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1.5" style="color: var(--ink-soft);">Amount (INR)</label>
-          <input type="number" name="amount" min="1" step="1" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);" placeholder="2500">
+          <label class="block field-label mb-1.5">Amount (INR)</label>
+          <input type="number" name="amount" min="1" step="1" required class="field-input w-full px-3 py-2 text-sm" placeholder="2500">
         </div>
         <div>
-          <label class="block text-xs font-mono-ledger uppercase tracking-wider mb-1.5" style="color: var(--ink-soft);">Google Drive verification link</label>
-          <input type="url" name="drive_link" required class="w-full px-3 py-2 rounded-md border bg-white/70 text-sm" style="border-color: var(--rule);" placeholder="https://drive.google.com/...">
+          <label class="block field-label mb-1.5">Google Drive verification link</label>
+          <input type="url" name="drive_link" required class="field-input w-full px-3 py-2 text-sm" placeholder="https://drive.google.com/...">
         </div>
         <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Submit for verification</button>
       </form>
     </div>
 
     <div class="lg:col-span-3">
-      <h2 class="font-display text-lg font-semibold flame-bullet">Your donation ledger</h2>
-      <div class="ledger-card rounded-lg mt-4 divide-y" style="border-color: var(--rule);">
+      <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Your donation ledger</h2>
+      <div class="list-card rounded-lg mt-4">
         {% if my_donations %}
           {% for d in my_donations %}
-          <div class="ledger-row px-5 py-4 flex items-start justify-between gap-4">
+          <div class="list-row px-5 py-4 flex items-start justify-between gap-4">
             <div>
-              <p class="font-medium text-sm">{{ d.donor_name }}</p>
-              <p class="font-mono-ledger text-lg mt-0.5">{{ d.amount|inr }}</p>
+              <p class="font-medium text-sm" style="color: var(--ink);">{{ d.donor_name }}</p>
+              <p class="text-lg mt-0.5 font-semibold" style="color: var(--ink);">{{ d.amount|inr }}</p>
               <p class="text-xs mt-1" style="color: var(--ink-soft);">Submitted {{ d.submitted_at }}</p>
               {% if d.status == 'rejected' and d.admin_note %}
-              <p class="text-xs mt-2 px-2.5 py-1.5 rounded" style="background: rgba(181,67,45,0.07); color: var(--stamp-red);">
+              <p class="text-xs mt-2 px-2.5 py-1.5 rounded" style="background: var(--red-soft); color: var(--red);">
                 Admin note: {{ d.admin_note }}
               </p>
               {% endif %}
             </div>
-            <span class="stamp stamp-{{ d.status }} shrink-0">{{ d.status }}</span>
+            <span class="badge badge-{{ d.status }} shrink-0">{{ d.status }}</span>
           </div>
           {% endfor %}
         {% else %}
@@ -115,19 +115,19 @@
 
   <!-- Missions tab -->
   <div id="tab-missions" class="tab-panel py-8 hidden">
-    <h2 class="font-display text-lg font-semibold flame-bullet">Active missions</h2>
+    <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Active missions</h2>
     <div class="grid sm:grid-cols-2 gap-4 mt-4">
       {% for t in tasks %}
-      <div class="ledger-card rounded-lg p-5 flex flex-col">
+      <div class="card rounded-lg p-5 flex flex-col">
         <div class="flex items-start justify-between gap-3">
-          <h3 class="font-medium text-sm">{{ t.title }}</h3>
+          <h3 class="font-medium text-sm" style="color: var(--ink);">{{ t.title }}</h3>
           {% if t.id in completed_task_ids %}
-          <span class="stamp stamp-approved shrink-0">Done</span>
+          <span class="badge badge-approved shrink-0">Done</span>
           {% endif %}
         </div>
         <p class="text-sm mt-2 flex-1" style="color: var(--ink-soft);">{{ t.description }}</p>
         {% if t.deadline %}
-        <p class="text-xs mt-3 font-mono-ledger" style="color: var(--ink-soft);">Due {{ t.deadline }}</p>
+        <p class="text-xs mt-3" style="color: var(--ink-soft);">Due {{ t.deadline }}</p>
         {% endif %}
         {% if t.id not in completed_task_ids %}
         <form method="POST" action="{{ url_for('complete_task', task_id=t.id) }}" class="mt-4">
@@ -143,12 +143,12 @@
 
   <!-- Resources tab -->
   <div id="tab-resources" class="tab-panel py-8 hidden">
-    <h2 class="font-display text-lg font-semibold flame-bullet">Resource library</h2>
+    <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Resource library</h2>
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
       {% for r in resources %}
-      <a href="{{ r.link }}" target="_blank" rel="noopener" class="ledger-card rounded-lg p-5 block hover:shadow-md transition">
-        <p class="text-[10px] uppercase tracking-wider font-mono-ledger" style="color: var(--marigold-dark, var(--marigold));">{{ r.category }}</p>
-        <p class="font-medium text-sm mt-1.5">{{ r.title }}</p>
+      <a href="{{ r.link }}" target="_blank" rel="noopener" class="card rounded-lg p-5 block hover:shadow-sm transition">
+        <p class="text-[10px] uppercase tracking-wide font-semibold" style="color: var(--accent);">{{ r.category }}</p>
+        <p class="font-medium text-sm mt-1.5" style="color: var(--ink);">{{ r.title }}</p>
         <p class="text-xs mt-3" style="color: var(--ink-soft);">Open in Google Drive &rarr;</p>
       </a>
       {% else %}
@@ -159,16 +159,16 @@
 
   <!-- Leaderboard tab -->
   <div id="tab-leaderboard" class="tab-panel py-8 hidden">
-    <h2 class="font-display text-lg font-semibold flame-bullet">Top 5 volunteers, org-wide</h2>
-    <div class="ledger-card rounded-lg mt-4 divide-y max-w-2xl" style="border-color: var(--rule);">
+    <h2 class="section-heading text-base font-semibold" style="color: var(--ink);">Top 5 volunteers, org-wide</h2>
+    <div class="list-card rounded-lg mt-4 max-w-2xl">
       {% for row in leaderboard %}
-      <div class="ledger-row px-5 py-4 flex items-center gap-4">
-        <span class="font-display text-xl w-6 text-center" style="color: var(--marigold-dark, var(--marigold));">{{ loop.index }}</span>
+      <div class="list-row px-5 py-4 flex items-center gap-4">
+        <span class="text-base font-semibold w-6 text-center" style="color: var(--accent);">{{ loop.index }}</span>
         <div class="flex-1">
-          <p class="font-medium text-sm">{{ row.full_name }}</p>
-          <p class="text-xs" style="color: var(--ink-soft);">{{ row.role|capitalize }}</p>
+          <p class="font-medium text-sm" style="color: var(--ink);">{{ row.full_name }}</p>
+          <p class="text-xs capitalize" style="color: var(--ink-soft);">{{ row.role }}</p>
         </div>
-        <span class="font-mono-ledger font-semibold">{{ row.total|inr }}</span>
+        <span class="font-semibold" style="color: var(--ink);">{{ row.total|inr }}</span>
       </div>
       {% else %}
       <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No verified donations yet.</p>
