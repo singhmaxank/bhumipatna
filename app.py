@@ -40,22 +40,34 @@ def favicon():
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
+    # Set default date filter
     days = int(request.args.get('days', 30))
     limit_date = (datetime.now() - timedelta(days=days)).isoformat()
     
+    # 1. Fetch Users
     users = supabase.table('users').select('*').execute().data or []
-    donations = supabase.table('donations').select('*, users(full_name)').gte('created_at', limit_date).execute().data or []
-    announcements = supabase.table('announcements').select('*').order('created_at', desc=True).limit(5).execute().data or []
     
-    # Simple Metrics
+    # 2. Fetch Donations (Wrapped in try/except in case column is missing)
+    try:
+        donations = supabase.table('donations').select('*, users(full_name)').gte('created_at', limit_date).execute().data or []
+    except:
+        # If the column created_at doesn't exist, fetch without filter to prevent crash
+        donations = supabase.table('donations').select('*, users(full_name)').execute().data or []
+    
+    # 3. Fetch Announcements (Wrapped in try/except in case table is missing)
+    try:
+        announcements = supabase.table('announcements').select('*').order('created_at', desc=True).limit(5).execute().data or []
+    except:
+        announcements = [] 
+    
+    # Process Metrics
     interns = [u for u in users if u['role'] == 'intern']
     ambassadors = [u for u in users if u['role'] == 'ambassador']
-    approved = [d for d in donations if d['status'] == 'approved']
+    approved = [d for d in donations if d.get('status') == 'approved']
     total_raised = sum(float(d.get('amount', 0)) for d in approved)
     
     return render_template('admin_dashboard.html', interns=interns, ambassadors=ambassadors, 
                            total_raised=total_raised, announcements=announcements, selected_days=days)
-
 @app.route('/admin/announcement', methods=['POST'])
 @admin_required
 def post_announcement():
