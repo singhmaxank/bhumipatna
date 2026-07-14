@@ -2,9 +2,9 @@
 {% block title %}Bhumi Patna Portal - Edit User{% endblock %}
 
 {% block content %}
-<div class="admin-section" style="max-width: 700px;">
+<div class="admin-section" style="max-width: 700px; margin: 0 auto;">
     <h2>Edit User Profile</h2>
-    <p class="subtext" style="margin-bottom: 2rem;">Update details for {{ user.full_name }}</p>
+    <p class="subtext" style="margin-bottom: 2rem; font-size: 0.95rem;">Update details for {{ user.full_name }}</p>
     
     <form method="POST" action="/admin/users/edit/{{ user.id }}">
         <div class="form-group">
@@ -44,13 +44,13 @@
 
         <div class="form-group" style="margin-top: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
             <label style="color: var(--primary);">Reset User Password</label>
-            <p class="subtext" style="margin-bottom: 0.5rem;">Leave blank to keep current password.</p>
+            <p class="subtext" style="margin-bottom: 0.75rem;">Leave blank to keep current password.</p>
             <input type="text" name="new_password" placeholder="Enter a new password">
         </div>
         
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn">Save Changes</button>
-            <a href="/admin" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn" style="flex: 1;">Save Changes</button>
+            <a href="/admin" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
         </div>
     </form>
 </div>

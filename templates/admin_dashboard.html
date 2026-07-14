@@ -5,7 +5,7 @@
 <div class="section-header">
     <div>
         <h2>Admin Overview</h2>
-        <p class="subtext">Welcome back, {{ session.name }}</p>
+        <p class="subtext" style="font-size: 0.95rem;">Welcome back, {{ session.name }}</p>
     </div>
     <a href="/admin/users/add" class="btn">+ Add New User</a>
 </div>
@@ -14,7 +14,7 @@
 <div class="kpi-grid">
     <div class="kpi-card">
         <div class="kpi-title">Total Platform Raised</div>
-        <div class="kpi-value" style="color: var(--primary);">₹{{ total_platform_raised }}</div>
+        <div class="kpi-value">₹{{ total_platform_raised }}</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-title">Active Interns</div>
@@ -27,16 +27,17 @@
 </div>
 
 <section class="admin-section">
-    <h3>Interns & Volunteers</h3>
+    <h3 style="margin-bottom: 1rem;">Interns & Volunteers</h3>
     <div class="table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th class="col-name">User Name</th>
-                    <th class="col-status">Status</th>
-                    <th class="col-progress">Tenure Progress</th>
-                    <th class="col-donors">Donors & Raised</th>
-                    <th class="col-actions">Actions</th>
+                    <th style="width: 25%;">User Name</th>
+                    <th style="width: 15%;">Status</th>
+                    <th style="width: 25%;">Tenure Progress</th>
+                    <!-- Removed donor names as requested, updated header to Funds Raised -->
+                    <th style="width: 15%;">Funds Raised</th>
+                    <th style="width: 20%; text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -63,8 +64,8 @@
                         </div>
                     </td>
                     <td>
-                        <strong style="color: var(--primary);">₹{{ user.total_raised }}</strong>
-                        <span class="subtext">{{ user.donor_list }}</span>
+                        <!-- Only amount shown now -->
+                        <strong style="color: var(--primary); font-size: 1.05rem;">₹{{ user.total_raised }}</strong>
                     </td>
                     <td class="action-cell">
                         <a href="/admin/users/edit/{{ user.id }}" class="btn btn-small btn-secondary">Edit</a>
@@ -80,13 +81,14 @@
 </section>
 
 <section class="admin-section">
-    <h3>System Administrators</h3>
+    <h3 style="margin-bottom: 1rem;">System Administrators</h3>
     <div class="table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
                     <th style="width: 40%;">Admin Name</th>
                     <th style="width: 30%;">Email</th>
+                    <!-- Fixed bottom line alignment issue here -->
                     <th style="width: 30%; text-align: right;">Actions</th>
                 </tr>
             </thead>

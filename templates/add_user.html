@@ -2,9 +2,9 @@
 {% block title %}Bhumi Patna Portal - Add User{% endblock %}
 
 {% block content %}
-<div class="admin-section" style="max-width: 700px;">
+<div class="admin-section" style="max-width: 700px; margin: 0 auto;">
     <h2>Add New User</h2>
-    <p class="subtext" style="margin-bottom: 2rem;">Create a new profile for an intern, ambassador, or admin.</p>
+    <p class="subtext" style="margin-bottom: 2rem; font-size: 0.95rem;">Create a new profile for an intern, ambassador, or admin.</p>
     
     <form method="POST" action="/admin/users/add">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
@@ -50,8 +50,8 @@
         </div>
         
         <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-            <button type="submit" class="btn">Create User</button>
-            <a href="/admin" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn" style="flex: 1;">Create User</button>
+            <a href="/admin" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
         </div>
     </form>
 </div>

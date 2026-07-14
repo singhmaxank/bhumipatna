@@ -5,7 +5,7 @@
 <div class="section-header">
     <div>
         <h2>Welcome, {{ session.name }}</h2>
-        <p class="subtext">
+        <p class="subtext" style="font-size: 0.95rem;">
             Role: <span class="badge {% if session.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}">{{ session.role | title }}</span>
         </p>
     </div>
@@ -14,7 +14,7 @@
 <div class="kpi-grid">
     <div class="kpi-card" style="grid-column: span 2;">
         <div class="progress-wrap">
-            <div class="progress-text" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+            <div class="progress-text" style="font-size: 0.9rem; margin-bottom: 0.5rem;">
                 <span>Internship Timeline</span>
                 <span style="color: var(--primary);">{{ days_left }} Days Left</span>
             </div>
@@ -25,14 +25,14 @@
     </div>
     <div class="kpi-card">
         <div class="kpi-title">Total Funds Raised</div>
-        <div class="kpi-value" style="color: var(--primary);">₹{{ total_donated }}</div>
+        <div class="kpi-value">₹{{ total_donated }}</div>
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+<div class="grid-2">
     <!-- Log Donation Form -->
-    <section class="admin-section">
-        <h3>Log a Donation</h3>
+    <section class="admin-section" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 1.5rem;">Log a Donation</h3>
         <form action="/submit-donation" method="POST">
             <div class="form-group">
                 <label>Donor Full Name</label>
@@ -52,13 +52,16 @@
                     <input type="text" name="utr" required>
                 </div>
             </div>
-            <button type="submit" class="btn" style="width: 100%;">Submit Donation</button>
+            <button type="submit" class="btn" style="width: 100%; margin-top: 0.5rem;">Submit Donation</button>
         </form>
     </section>
 
     <!-- Leaderboard -->
-    <section class="admin-section">
-        <h3>Top Fundraisers</h3>
+    <section class="admin-section" style="margin-bottom: 0;">
+        <div class="section-header" style="margin-bottom: 1rem;">
+            <h3 style="margin: 0;">Top Fundraisers</h3>
+            <span class="badge badge-intern">Live</span>
+        </div>
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
@@ -73,7 +76,7 @@
                     <tr>
                         <td><strong>#{{ loop.index }}</strong></td>
                         <td><strong>{{ leader.full_name }}</strong></td>
-                        <td style="text-align: right; color: var(--primary); font-weight: 700;">₹{{ leader.total_raised | default('0') }}</td>
+                        <td style="text-align: right; color: var(--primary); font-weight: 800;">₹{{ leader.total_raised | default('0') }}</td>
                     </tr>
                     {% else %}
                     <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No data available yet.</td></tr>
