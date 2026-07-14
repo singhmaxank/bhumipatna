@@ -30,9 +30,10 @@ RANK_TIERS = [
 # --------------------------------------------------------------------------
 def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
+        g.db = psycopg2.connect(
+            os.environ.get('postgresql://postgres:AdminBhumi%406458@db.tvpeifkivzonhguodour.supabase.co:5432/postgres'),
+            cursor_factory=RealDictCursor
+        )
     return g.db
 
 
