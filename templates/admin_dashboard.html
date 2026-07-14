@@ -2,50 +2,32 @@
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2>Admin Control Panel</h2>
+    <div>
+        <h2>Admin Control Panel</h2>
+        <p style="color: var(--text-muted);">Welcome back, {{ session.name }}</p>
+    </div>
     <a href="/logout" class="btn btn-small">Logout</a>
 </div>
 
-<!-- User Management -->
+<!-- Admin Management -->
 <section class="admin-section">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>User Management</h3>
-        <a href="/admin/users/add" class="btn btn-small">Add User</a>
+        <h3>Administrators</h3>
     </div>
     <table class="data-table">
         <tr>
-            <th>Name</th>
-            <th>Role</th>
+            <th>Full Name</th>
+            <th>Username</th>
+            <th>Email</th>
             <th>Actions</th>
         </tr>
-        <!-- Jinja loop example -->
-        {% for user in users %}
+        {% for admin in admins %}
         <tr>
-            <td>{{ user.name }}</td>
-            <td>{{ user.role }}</td>
+            <td>{{ admin.full_name }}</td>
+            <td>{{ admin.username }}</td>
+            <td>{{ admin.email }}</td>
             <td>
-                <a href="/admin/users/edit/{{ user.id }}" class="btn btn-small">Edit</a>
-                <a href="/admin/users/delete/{{ user.id }}" class="btn btn-small btn-danger">Delete</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-</section>
-
-<!-- Missions -->
-<section class="admin-section">
-    <h3>Missions</h3>
-    <table class="data-table">
-        <tr>
-            <th>Title</th>
-            <th>Actions</th>
-        </tr>
-        {% for mission in missions %}
-        <tr>
-            <td>{{ mission.title }}</td>
-            <td>
-                <a href="/admin/missions/edit/{{ mission.id }}" class="btn btn-small">Edit</a>
-                <a href="/admin/missions/delete/{{ mission.id }}" class="btn btn-small btn-danger">Delete</a>
+                <a href="#" class="btn btn-small">Edit</a>
             </td>
         </tr>
         {% endfor %}
@@ -53,33 +35,35 @@
 </section>
 
 <!-- Interns & Campus Ambassadors -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-    <section class="admin-section">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <section class="admin-section" style="margin-bottom: 0;">
         <h3>Interns</h3>
         <table class="data-table">
             {% for intern in interns %}
             <tr>
-                <td>{{ intern.name }}</td>
-                <td>
-                    <a href="/admin/interns/edit/{{ intern.id }}" class="btn btn-small">Edit</a>
-                    <a href="/admin/interns/delete/{{ intern.id }}" class="btn btn-small btn-danger">Delete</a>
+                <td>{{ intern.full_name }}</td>
+                <td style="text-align: right;">
+                    <a href="/admin/users/delete/{{ intern.id }}" class="btn btn-small btn-danger">Delete</a>
                 </td>
             </tr>
+            {% else %}
+            <tr><td>No interns found.</td></tr>
             {% endfor %}
         </table>
     </section>
 
-    <section class="admin-section">
+    <section class="admin-section" style="margin-bottom: 0;">
         <h3>Campus Ambassadors</h3>
         <table class="data-table">
             {% for ambassador in ambassadors %}
             <tr>
-                <td>{{ ambassador.name }}</td>
-                <td>
-                    <a href="/admin/ambassadors/edit/{{ ambassador.id }}" class="btn btn-small">Edit</a>
-                    <a href="/admin/ambassadors/delete/{{ ambassador.id }}" class="btn btn-small btn-danger">Delete</a>
+                <td>{{ ambassador.full_name }}</td>
+                <td style="text-align: right;">
+                    <a href="/admin/users/delete/{{ ambassador.id }}" class="btn btn-small btn-danger">Delete</a>
                 </td>
             </tr>
+            {% else %}
+            <tr><td>No ambassadors found.</td></tr>
             {% endfor %}
         </table>
     </section>
@@ -87,24 +71,69 @@
 
 <!-- Leaderboard -->
 <section class="admin-section">
-    <h3>Leaderboard</h3>
+    <h3>Leaderboard (Points)</h3>
     <table class="data-table">
         <tr>
             <th>Rank</th>
             <th>Name</th>
-            <th>Points/Impact</th>
-            <th>Actions</th>
+            <th>Role</th>
+            <th>Points</th>
         </tr>
         {% for leader in leaderboard %}
         <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ leader.name }}</td>
-            <td>{{ leader.points }}</td>
+            <td>#{{ loop.index }}</td>
+            <td>{{ leader.full_name }}</td>
+            <td>{{ leader.role | title }}</td>
+            <td>{{ leader.points | default('0') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No volunteer data available.</td></tr>
+        {% endfor %}
+    </table>
+</section>
+
+<!-- Missions -->
+<section class="admin-section">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Missions & Tasks</h3>
+    </div>
+    <table class="data-table">
+        <tr>
+            <th>Mission Title</th>
+            <th>Actions</th>
+        </tr>
+        {% for mission in missions %}
+        <tr>
+            <td>{{ mission.title }}</td>
             <td>
-                <a href="/admin/leaderboard/edit/{{ leader.id }}" class="btn btn-small">Edit</a>
-                <a href="/admin/leaderboard/delete/{{ leader.id }}" class="btn btn-small btn-danger">Delete</a>
+                <a href="/admin/missions/delete/{{ mission.id }}" class="btn btn-small btn-danger">Delete</a>
             </td>
         </tr>
+        {% else %}
+        <tr><td colspan="2">No missions created yet.</td></tr>
+        {% endfor %}
+    </table>
+</section>
+
+<!-- Resources -->
+<section class="admin-section">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Resources</h3>
+    </div>
+    <table class="data-table">
+        <tr>
+            <th>Resource Title</th>
+            <th>Actions</th>
+        </tr>
+        {% for resource in resources %}
+        <tr>
+            <td>{{ resource.title }}</td>
+            <td>
+                <a href="/admin/resources/delete/{{ resource.id }}" class="btn btn-small btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="2">No resources uploaded yet.</td></tr>
         {% endfor %}
     </table>
 </section>

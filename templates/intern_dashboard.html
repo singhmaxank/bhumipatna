@@ -4,7 +4,7 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <div>
         <h2>Welcome, {{ session.name }}</h2>
-        <p style="color: var(--text-muted);">Role: {{ session.role | replace('_', ' ') | title }}</p>
+        <p style="color: var(--text-muted);">Role: {{ session.role | title }}</p>
     </div>
     <a href="/logout" class="btn btn-small">Logout</a>
 </div>
@@ -16,17 +16,15 @@
         <table class="data-table">
             <tr>
                 <th>Title</th>
-                <th>Points Available</th>
                 <th>Action</th>
             </tr>
             {% for task in tasks %}
             <tr>
                 <td>{{ task.title }}</td>
-                <td>{{ task.points }}</td>
-                <td><button class="btn btn-small">Mark Complete</button></td>
+                <td style="text-align: right;"><button class="btn btn-small">View</button></td>
             </tr>
             {% else %}
-            <tr><td colspan="3">No missions available at the moment.</td></tr>
+            <tr><td colspan="2">No missions available at the moment.</td></tr>
             {% endfor %}
         </table>
     </section>
@@ -42,7 +40,7 @@
             {% for resource in resources %}
             <tr>
                 <td>{{ resource.title }}</td>
-                <td><a href="{{ resource.url }}" target="_blank">View</a></td>
+                <td style="text-align: right;"><a href="{{ resource.url }}" target="_blank" class="btn btn-small">Open</a></td>
             </tr>
             {% else %}
             <tr><td colspan="2">No resources posted yet.</td></tr>
