@@ -202,8 +202,6 @@ def add_user():
                 'password_hash': request.form.get('password'),
                 'role': request.form.get('role')
             }
-            if request.form.get('tenure_start'): insert_data['tenure_start'] = request.form.get('tenure_start')
-            if request.form.get('tenure_end'): insert_data['tenure_end'] = request.form.get('tenure_end')
             if request.form.get('head_id'): insert_data['head_id'] = int(request.form.get('head_id'))
 
             supabase.table('users').insert(insert_data).execute()
@@ -213,7 +211,25 @@ def add_user():
             flash(f"Error creating user: {str(e)}", "error")
             
     admins = supabase.table('users').select('id, full_name').eq('role', 'admin').execute().data or []
-    return render_template('add_user.html', admins=admins)
+    
+    # Fetch all users and sort them alphabetically for the Reset Password dropdown
+    all_users = supabase.table('users').select('id, username, full_name').execute().data or []
+    all_users = sorted(all_users, key=lambda x: x['full_name'])
+    
+    return render_template('add_user.html', admins=admins, all_users=all_users)
+
+# --- NEW ROUTE FOR QUICK PASSWORD RESET ---
+@app.route('/admin/users/quick_reset', methods=['POST'])
+@admin_required
+def quick_reset():
+    user_id = request.form.get('user_id')
+    new_password = request.form.get('new_password')
+    try:
+        supabase.table('users').update({'password_hash': new_password}).eq('id', user_id).execute()
+        flash("User password has been successfully reset!", "success")
+    except Exception as e:
+        flash(f"Error resetting password: {str(e)}", "error")
+    return redirect(url_for('add_user'))
 
 @app.route('/admin/users/edit/<int:user_id>', methods=['GET', 'POST'])
 @admin_required

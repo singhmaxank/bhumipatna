@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Add User{% endblock %}
-{% block page_name %}Account Creation{% endblock %}
+{% block title %}Manage Users{% endblock %}
+{% block page_name %}Account Management{% endblock %}
 
 {% block content %}
-<div class="grid" style="justify-content: center; display: flex;">
+<div class="grid" style="justify-content: center; display: flex; flex-direction: column; align-items: center; gap: 30px;">
+    
+    <!-- CARD 1: Create New Account -->
     <div class="card" style="width: 100%; max-width: 700px;">
         <h3 class="card-title" style="margin-bottom: 24px;">New User Details</h3>
         
@@ -41,6 +43,29 @@
                 <button type="submit" class="btn-main" style="flex: 2;">Create Account</button>
                 <a href="/admin" class="btn-main" style="flex: 1; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">Cancel</a>
             </div>
+        </form>
+    </div>
+
+    <!-- CARD 2: Quick Password Reset -->
+    <div class="card" style="width: 100%; max-width: 700px; border-top: 4px solid var(--primary);">
+        <h3 class="card-title" style="margin-bottom: 24px;">Quick Password Reset</h3>
+        
+        <form method="POST" action="/admin/users/quick_reset">
+            <div class="form-group">
+                <label>Select User</label>
+                <select name="user_id" class="form-control" required>
+                    <option value="" disabled selected>Search & Select a user...</option>
+                    {% for u in all_users %}
+                        <option value="{{ u.id }}">{{ u.full_name }} (@{{ u.username }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="text" name="new_password" class="form-control" placeholder="Enter new password" required>
+            </div>
+            
+            <button type="submit" class="btn-main" style="margin-top: 10px;">Reset Password</button>
         </form>
     </div>
 </div>
