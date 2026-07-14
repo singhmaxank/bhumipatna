@@ -1,121 +1,104 @@
 :root {
-  --bg: #faf9f7;
-  --surface: #ffffff;
-  --border: #e6e2db;
-  --ink: #201b14;
-  --ink-soft: #756b5c;
-  --accent: #b45309;
-  --accent-hover: #93400a;
-  --accent-soft: #fdf1e4;
-  --leaf: #4d7c3a;
-  --leaf-soft: #eef4e9;
-  --red: #b4402d;
-  --red-soft: #fbeeec;
-  --gold: #a3821a;
-  --gold-soft: #f8f2e3;
-  --blue: #3a5ba0;
-  --blue-soft: #eef1fa;
+  --soil: #241a10;
+  --soil-2: #34261a;
+  --marigold: #e2872a;
+  --marigold-dark: #c46f1a;
+  --leaf: #6fa83c;
+  --leaf-dark: #557f2c;
+  --parchment: #f6efdd;
+  --parchment-2: #efe4c7;
+  --ink: #2b2118;
+  --ink-soft: #5a4c3c;
+  --stamp-red: #b5432d;
+  --gold: #c9a227;
+  --rule: rgba(43, 33, 24, 0.14);
 }
-
-* { box-sizing: border-box; }
 
 body {
-  background-color: var(--bg);
+  background-color: var(--parchment);
   color: var(--ink);
-  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Everything uses the same simple sans font; weight/size carry hierarchy. */
-.font-display,
-.font-mono-ledger {
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
-h1, h2, h3 { letter-spacing: -0.01em; }
-
-/* Top navigation bar */
-.app-header {
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
+.font-display {
+  font-family: "Fraunces", Georgia, serif;
 }
 
-/* Simple page banner used for hero/summary sections */
-.page-banner {
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
+.font-mono-ledger {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
 }
 
-.stat-tile {
-  background-color: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+/* Soil-toned navigation / header band */
+.soil-panel {
+  background-color: var(--soil);
+  background-image: radial-gradient(circle at 15% 20%, rgba(226, 135, 42, 0.12), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(111, 168, 60, 0.10), transparent 40%);
 }
 
-/* Card: flat, minimal, one thin border */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+/* Ledger card: ruled paper feel used for lists of entries */
+.ledger-card {
+  background: linear-gradient(var(--parchment), var(--parchment));
+  border: 1px solid var(--rule);
+  box-shadow: 0 1px 0 rgba(43, 33, 24, 0.05);
 }
 
-.list-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+.ledger-row {
+  border-bottom: 1px dashed var(--rule);
 }
-
-.list-row {
-  border-bottom: 1px solid var(--border);
-}
-.list-row:last-child {
+.ledger-row:last-child {
   border-bottom: none;
 }
 
-/* Status / rank badges - flat, no rotation, no gimmicks */
-.badge {
+/* Rubber-stamp badge, used for donation status + rank tier */
+.stamp {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  font-size: 0.72rem;
-  padding: 0.28rem 0.6rem;
-  border-radius: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 3px;
+  border: 1.5px solid currentColor;
+  transform: rotate(-1.5deg);
 }
 
-.badge-approved { color: var(--leaf); background: var(--leaf-soft); }
-.badge-pending { color: var(--ink-soft); background: var(--bg); border: 1px solid var(--border); }
-.badge-rejected { color: var(--red); background: var(--red-soft); }
+.stamp-approved { color: var(--leaf-dark); background: rgba(111, 168, 60, 0.10); }
+.stamp-pending { color: var(--ink-soft); background: rgba(90, 76, 60, 0.08); }
+.stamp-rejected { color: var(--stamp-red); background: rgba(181, 67, 45, 0.08); }
 
-.badge-bronze { color: #8a5a2b; background: #f6ede2; }
-.badge-silver { color: #5b6472; background: #eef0f2; }
-.badge-gold { color: var(--gold); background: var(--gold-soft); }
-.badge-platinum { color: var(--blue); background: var(--blue-soft); }
+.stamp-bronze { color: #8a5a2b; background: rgba(138, 90, 43, 0.10); }
+.stamp-silver { color: #6b7280; background: rgba(107, 114, 128, 0.12); }
+.stamp-gold { color: var(--gold); background: rgba(201, 162, 39, 0.12); }
+.stamp-platinum { color: #4f6dbf; background: rgba(79, 109, 191, 0.12); }
 
-/* Progress meter toward next rank */
-.progress-track {
+/* Torch-meter: the signature rank progress bar, flame-shaped fill */
+.torch-meter {
   position: relative;
-  height: 8px;
+  height: 14px;
   border-radius: 999px;
-  background: var(--border);
+  background: var(--parchment-2);
+  border: 1px solid var(--rule);
   overflow: hidden;
 }
-.progress-fill {
+.torch-meter-fill {
   height: 100%;
   border-radius: 999px;
-  background: var(--accent);
-  transition: width 0.5s ease;
+  background: linear-gradient(90deg, var(--leaf) 0%, var(--marigold) 65%, var(--gold) 100%);
+  transition: width 0.6s ease;
 }
 
 /* Buttons */
 .btn-primary {
-  background: var(--accent);
+  background: var(--marigold);
   color: #fff;
   font-weight: 600;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
-.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:hover { background: var(--marigold-dark); }
+.btn-primary:active { transform: translateY(1px); }
 
 .btn-leaf {
   background: var(--leaf);
@@ -123,78 +106,54 @@ h1, h2, h3 { letter-spacing: -0.01em; }
   font-weight: 600;
   transition: background-color 0.15s ease;
 }
-.btn-leaf:hover { background: #3c6130; }
+.btn-leaf:hover { background: var(--leaf-dark); }
 
 .btn-outline {
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--ink-soft);
   color: var(--ink);
-  font-weight: 500;
-  background: var(--surface);
+  font-weight: 600;
 }
-.btn-outline:hover { background: var(--bg); }
+.btn-outline:hover { background: rgba(43, 33, 24, 0.05); }
 
 .btn-danger-outline {
-  border: 1px solid var(--red);
-  color: var(--red);
-  font-weight: 500;
-  background: var(--surface);
-}
-.btn-danger-outline:hover { background: var(--red-soft); }
-
-.btn-text {
-  color: var(--ink-soft);
-  font-weight: 500;
-}
-.btn-text:hover { color: var(--ink); }
-
-/* Simple text inputs */
-.field-label {
-  font-size: 0.72rem;
+  border: 1.5px solid var(--stamp-red);
+  color: var(--stamp-red);
   font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--ink-soft);
 }
+.btn-danger-outline:hover { background: rgba(181, 67, 45, 0.06); }
 
-.field-input {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 8px;
-}
-
-/* Tab navigation */
+/* Tab navigation used on dashboards */
 .tab-btn {
-  font-size: 0.82rem;
-  font-weight: 500;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   color: var(--ink-soft);
   border-bottom: 2px solid transparent;
 }
 .tab-btn.active {
   color: var(--ink);
-  border-bottom-color: var(--accent);
-  font-weight: 600;
+  border-bottom-color: var(--marigold);
 }
 
-/* Small heading rule, replaces old flame bullet — quiet, minimal accent */
-.section-heading {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.section-heading::before {
+/* Flame bullet used before headings, echoing the logo's torch mark */
+.flame-bullet::before {
   content: "";
   display: inline-block;
-  width: 3px;
-  height: 1em;
-  background: var(--accent);
-  border-radius: 2px;
+  width: 9px;
+  height: 9px;
+  margin-right: 8px;
+  background: var(--marigold);
+  clip-path: polygon(50% 0%, 80% 35%, 100% 60%, 70% 100%, 30% 100%, 0% 60%, 20% 35%);
+  vertical-align: middle;
 }
 
 ::selection {
-  background: var(--accent);
+  background: var(--marigold);
   color: #fff;
 }
 
 input:focus, select:focus, textarea:focus, button:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--marigold);
   outline-offset: 1px;
 }

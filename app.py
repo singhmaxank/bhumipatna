@@ -1,11 +1,6 @@
 import csv
 import io
 import os
-<<<<<<< HEAD
-import time
-
-=======
->>>>>>> 0610f2665c1dc97c9fa417fa1c25fff8cef7d841
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
@@ -15,11 +10,10 @@ from flask import (Flask, flash, g, redirect, render_template, request,
                     session, url_for, Response)
 from werkzeug.security import check_password_hash, generate_password_hash
 
+DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "bhumi.db"))
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("BHUMI_SECRET_KEY", "dev-secret-key-change-in-production")
-
-# How long a verified "forgot password" session is allowed to set a new password.
-RESET_WINDOW_SECONDS = 10 * 60
 
 # Rank tiers: (label, floor amount, ceiling amount or None for top tier)
 RANK_TIERS = [
@@ -29,8 +23,6 @@ RANK_TIERS = [
     ("Platinum", 50000, None),
 ]
 
-MANAGEABLE_ROLES = ("intern", "ambassador")
-
 
 # --------------------------------------------------------------------------
 # Database helpers
@@ -38,13 +30,8 @@ MANAGEABLE_ROLES = ("intern", "ambassador")
 def get_db():
     if "db" not in g:
         g.db = psycopg2.connect(
-<<<<<<< HEAD
-            os.environ.get("DATABASE_URL"),
-            cursor_factory=RealDictCursor,
-=======
             os.environ.get('DATABASE_URL'),
             cursor_factory=RealDictCursor
->>>>>>> 0610f2665c1dc97c9fa417fa1c25fff8cef7d841
         )
     return g.db
 
@@ -94,10 +81,7 @@ def role_required(*roles):
                 return redirect(url_for("login"))
             if session.get("role") not in roles:
                 flash("You do not have permission to view that page.", "error")
-<<<<<<< HEAD
-=======
                 # Fix: Route users to their correct respective homepages
->>>>>>> 0610f2665c1dc97c9fa417fa1c25fff8cef7d841
                 if session.get("role") == "admin":
                     return redirect(url_for("admin_panel"))
                 return redirect(url_for("dashboard"))
@@ -132,29 +116,13 @@ def verified_total(user_id):
     return row["total"]
 
 
-def org_leaderboard(limit=None):
-    query = """SELECT u.id, u.full_name, u.role, COALESCE(SUM(d.amount), 0) AS total
-               FROM users u
-               LEFT JOIN donations d ON d.user_id = u.id AND d.status = 'approved'
-               WHERE u.role IN ('intern', 'ambassador')
-               GROUP BY u.id
-               ORDER BY total DESC"""
-    if limit:
-        query += " LIMIT %s"
-        return query_db(query, (limit,))
-    return query_db(query)
-
-
 # --------------------------------------------------------------------------
 # Auth routes
 # --------------------------------------------------------------------------
 @app.route("/")
 def index():
     if "user_id" in session:
-<<<<<<< HEAD
-=======
         # Fix: Direct admins to the admin panel, everyone else to dashboard
->>>>>>> 0610f2665c1dc97c9fa417fa1c25fff8cef7d841
         if session.get("role") == "admin":
             return redirect(url_for("admin_panel"))
         return redirect(url_for("dashboard"))
@@ -194,67 +162,6 @@ def logout():
 
 
 # --------------------------------------------------------------------------
-# Forgot / reset password
-# --------------------------------------------------------------------------
-@app.route("/forgot-password", methods=["GET", "POST"])
-def forgot_password():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        email = request.form.get("email", "").strip().lower()
-
-        user = query_db(
-            "SELECT * FROM users WHERE username = %s AND lower(email) = %s",
-            (username, email), one=True,
-        )
-
-        if user is None:
-            flash("We couldn't match that username and email. Please check and try again, or contact your admin.", "error")
-            return render_template("forgot_password.html")
-
-        session["reset_user_id"] = user["id"]
-        session["reset_expires"] = time.time() + RESET_WINDOW_SECONDS
-        flash("Identity verified. Please set a new password.", "success")
-        return redirect(url_for("reset_password"))
-
-    return render_template("forgot_password.html")
-
-
-@app.route("/reset-password", methods=["GET", "POST"])
-def reset_password():
-    reset_user_id = session.get("reset_user_id")
-    reset_expires = session.get("reset_expires")
-
-    if not reset_user_id or not reset_expires or time.time() > reset_expires:
-        session.pop("reset_user_id", None)
-        session.pop("reset_expires", None)
-        flash("That password reset session has expired. Please verify your identity again.", "error")
-        return redirect(url_for("forgot_password"))
-
-    if request.method == "POST":
-        new_password = request.form.get("new_password", "")
-        confirm_password = request.form.get("confirm_password", "")
-
-        if len(new_password) < 6:
-            flash("Password must be at least 6 characters long.", "error")
-            return render_template("reset_password.html")
-
-        if new_password != confirm_password:
-            flash("Passwords do not match.", "error")
-            return render_template("reset_password.html")
-
-        execute_db(
-            "UPDATE users SET password_hash = %s WHERE id = %s",
-            (generate_password_hash(new_password), reset_user_id),
-        )
-        session.pop("reset_user_id", None)
-        session.pop("reset_expires", None)
-        flash("Password updated. Please sign in with your new password.", "success")
-        return redirect(url_for("login"))
-
-    return render_template("reset_password.html")
-
-
-# --------------------------------------------------------------------------
 # Intern / Ambassador dashboard
 # --------------------------------------------------------------------------
 @app.route("/dashboard")
@@ -276,7 +183,16 @@ def dashboard():
     }
 
     resources = query_db("SELECT * FROM resources ORDER BY category, title")
-    leaderboard = org_leaderboard(limit=5)
+
+    leaderboard = query_db(
+        """SELECT u.full_name, u.role, COALESCE(SUM(d.amount), 0) AS total
+           FROM users u
+           LEFT JOIN donations d ON d.user_id = u.id AND d.status = 'approved'
+           WHERE u.role IN ('intern', 'ambassador')
+           GROUP BY u.id
+           ORDER BY total DESC
+           LIMIT 5"""
+    )
 
     return render_template(
         "intern_dashboard.html",
@@ -352,15 +268,9 @@ def admin_panel():
            FROM donations d JOIN users u ON u.id = d.user_id
            ORDER BY d.submitted_at DESC"""
     )
-    interns = query_db(
-        "SELECT * FROM users WHERE role = 'intern' ORDER BY full_name"
-    )
-    ambassadors = query_db(
-        "SELECT * FROM users WHERE role = 'ambassador' ORDER BY full_name"
-    )
+    users = query_db("SELECT * FROM users WHERE role != 'admin' ORDER BY full_name")
     tasks = query_db("SELECT * FROM tasks ORDER BY deadline ASC")
     resources = query_db("SELECT * FROM resources ORDER BY category, title")
-    leaderboard = org_leaderboard()
 
     stats = query_db(
         """SELECT
@@ -375,11 +285,9 @@ def admin_panel():
     return render_template(
         "admin_dashboard.html",
         donations=donations,
-        interns=interns,
-        ambassadors=ambassadors,
+        users=users,
         tasks=tasks,
         resources=resources,
-        leaderboard=leaderboard,
         stats=stats,
     )
 
@@ -429,7 +337,6 @@ def export_csv():
     )
 
 
-# --- Users (Interns / Campus Ambassadors) ---------------------------------
 @app.route("/admin/users/create", methods=["POST"])
 @role_required("admin")
 def create_user():
@@ -442,7 +349,7 @@ def create_user():
     tenure_start = request.form.get("tenure_start") or None
     tenure_end = request.form.get("tenure_end") or None
 
-    if not username or not password or not full_name or role not in MANAGEABLE_ROLES:
+    if not username or not password or not full_name or role not in ("intern", "ambassador"):
         flash("Please fill in all required fields correctly.", "error")
         return redirect(url_for("admin_panel"))
 
@@ -460,67 +367,6 @@ def create_user():
     return redirect(url_for("admin_panel"))
 
 
-@app.route("/admin/users/<int:user_id>/edit", methods=["POST"])
-@role_required("admin")
-def edit_user(user_id):
-    target = query_db("SELECT * FROM users WHERE id = %s", (user_id,), one=True)
-    if target is None or target["role"] not in MANAGEABLE_ROLES:
-        flash("That account cannot be edited.", "error")
-        return redirect(url_for("admin_panel"))
-
-    full_name = request.form.get("full_name", "").strip()
-    username = request.form.get("username", "").strip()
-    role = request.form.get("role", "").strip()
-    email = request.form.get("email", "").strip()
-    phone = request.form.get("phone", "").strip()
-    tenure_start = request.form.get("tenure_start") or None
-    tenure_end = request.form.get("tenure_end") or None
-    new_password = request.form.get("password", "").strip()
-
-    if not full_name or not username or role not in MANAGEABLE_ROLES:
-        flash("Please fill in all required fields correctly.", "error")
-        return redirect(url_for("admin_panel"))
-
-    existing = query_db(
-        "SELECT id FROM users WHERE username = %s AND id != %s", (username, user_id), one=True
-    )
-    if existing:
-        flash("That username is already taken by another account.", "error")
-        return redirect(url_for("admin_panel"))
-
-    if new_password:
-        execute_db(
-            """UPDATE users SET full_name = %s, username = %s, role = %s, email = %s,
-                                 phone = %s, tenure_start = %s, tenure_end = %s, password_hash = %s
-               WHERE id = %s""",
-            (full_name, username, role, email, phone, tenure_start, tenure_end,
-             generate_password_hash(new_password), user_id),
-        )
-    else:
-        execute_db(
-            """UPDATE users SET full_name = %s, username = %s, role = %s, email = %s,
-                                 phone = %s, tenure_start = %s, tenure_end = %s
-               WHERE id = %s""",
-            (full_name, username, role, email, phone, tenure_start, tenure_end, user_id),
-        )
-    flash(f"Account updated for {full_name}.", "success")
-    return redirect(url_for("admin_panel"))
-
-
-@app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
-@role_required("admin")
-def delete_user(user_id):
-    target = query_db("SELECT * FROM users WHERE id = %s", (user_id,), one=True)
-    if target is None or target["role"] not in MANAGEABLE_ROLES:
-        flash("That account cannot be deleted.", "error")
-        return redirect(url_for("admin_panel"))
-
-    execute_db("DELETE FROM users WHERE id = %s", (user_id,))
-    flash(f"Account for {target['full_name']} has been removed.", "success")
-    return redirect(url_for("admin_panel"))
-
-
-# --- Missions (tasks) ------------------------------------------------------
 @app.route("/admin/tasks/create", methods=["POST"])
 @role_required("admin")
 def create_task():
@@ -529,7 +375,7 @@ def create_task():
     deadline = request.form.get("deadline") or None
 
     if not title:
-        flash("Mission title is required.", "error")
+        flash("Task title is required.", "error")
         return redirect(url_for("admin_panel"))
 
     execute_db(
@@ -540,34 +386,6 @@ def create_task():
     return redirect(url_for("admin_panel"))
 
 
-@app.route("/admin/tasks/<int:task_id>/edit", methods=["POST"])
-@role_required("admin")
-def edit_task(task_id):
-    title = request.form.get("title", "").strip()
-    description = request.form.get("description", "").strip()
-    deadline = request.form.get("deadline") or None
-
-    if not title:
-        flash("Mission title is required.", "error")
-        return redirect(url_for("admin_panel"))
-
-    execute_db(
-        "UPDATE tasks SET title = %s, description = %s, deadline = %s WHERE id = %s",
-        (title, description, deadline, task_id),
-    )
-    flash("Mission updated.", "success")
-    return redirect(url_for("admin_panel"))
-
-
-@app.route("/admin/tasks/<int:task_id>/delete", methods=["POST"])
-@role_required("admin")
-def delete_task(task_id):
-    execute_db("DELETE FROM tasks WHERE id = %s", (task_id,))
-    flash("Mission deleted.", "success")
-    return redirect(url_for("admin_panel"))
-
-
-# --- Resources --------------------------------------------------------------
 @app.route("/admin/resources/create", methods=["POST"])
 @role_required("admin")
 def create_resource():
@@ -584,33 +402,6 @@ def create_resource():
         (title, category, link),
     )
     flash("Resource added to the library.", "success")
-    return redirect(url_for("admin_panel"))
-
-
-@app.route("/admin/resources/<int:resource_id>/edit", methods=["POST"])
-@role_required("admin")
-def edit_resource(resource_id):
-    title = request.form.get("title", "").strip()
-    category = request.form.get("category", "").strip()
-    link = request.form.get("link", "").strip()
-
-    if not title or not category or not link:
-        flash("Please fill in all resource fields.", "error")
-        return redirect(url_for("admin_panel"))
-
-    execute_db(
-        "UPDATE resources SET title = %s, category = %s, link = %s WHERE id = %s",
-        (title, category, link, resource_id),
-    )
-    flash("Resource updated.", "success")
-    return redirect(url_for("admin_panel"))
-
-
-@app.route("/admin/resources/<int:resource_id>/delete", methods=["POST"])
-@role_required("admin")
-def delete_resource(resource_id):
-    execute_db("DELETE FROM resources WHERE id = %s", (resource_id,))
-    flash("Resource removed from the library.", "success")
     return redirect(url_for("admin_panel"))
 
 
@@ -632,7 +423,6 @@ def inr_format(value):
 
 
 if __name__ == "__main__":
-    if not os.environ.get("DATABASE_URL"):
-        print("DATABASE_URL is not set. Set it to your Supabase/PostgreSQL connection string,")
-        print("then run `python init_db.py` once before starting the app.")
+    if not os.path.exists(DB_PATH):
+        print("No database found. Run `python init_db.py` first.")
     app.run(debug=True, host="0.0.0.0", port=5000)
