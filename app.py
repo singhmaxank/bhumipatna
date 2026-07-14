@@ -31,7 +31,7 @@ RANK_TIERS = [
 def get_db():
     if "db" not in g:
         g.db = psycopg2.connect(
-            os.environ.get('postgresql://postgres:AdminBhumi%406458@db.tvpeifkivzonhguodour.supabase.co:5432/postgres'),
+            os.environ.get('DATABASE_URL'),
             cursor_factory=RealDictCursor
         )
     return g.db
@@ -45,7 +45,9 @@ def close_db(exception=None):
 
 
 def query_db(query, args=(), one=False):
-    cur = get_db().execute(query, args)
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(query, args)
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
@@ -53,11 +55,11 @@ def query_db(query, args=(), one=False):
 
 def execute_db(query, args=()):
     db = get_db()
-    cur = db.execute(query, args)
+    cur = db.cursor()
+    cur.execute(query, args)
     db.commit()
-    last_id = cur.lastrowid
     cur.close()
-    return last_id
+    return None
 
 
 # --------------------------------------------------------------------------
