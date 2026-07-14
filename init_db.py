@@ -21,7 +21,10 @@ def init_db(if_missing_only=False):
             return
         os.remove(DB_PATH)
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = psycopg2.connect(
+    os.environ.get('postgresql://postgres:AdminBhumi%406458@db.tvpeifkivzonhguodour.supabase.co:5432/postgres'),
+    cursor_factory=RealDictCursor
+)
     with open(SCHEMA_PATH, "r") as f:
         conn.executescript(f.read())
 
