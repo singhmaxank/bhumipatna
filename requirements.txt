@@ -1,9 +1,4 @@
 Flask==3.0.3
 gunicorn==22.0.0
-<<<<<<< HEAD
 supabase==2.5.1
 python-dotenv==1.0.1
-=======
-psycopg2-binary==2.9.9
-supabase==2.5.1
->>>>>>> 7ed08732e2efb4f3f3c16f6118076406bbe51f7a
