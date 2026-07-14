@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: starter          # persistent disks require a paid plan (free plan has no disk support)
     buildCommand: "pip install -r requirements.txt && python init_db.py --if-missing"
-    startCommand: "gunicorn app:app"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
     envVars:
       - key: BHUMI_SECRET_KEY
         generateValue: true
