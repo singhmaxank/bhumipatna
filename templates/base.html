@@ -8,20 +8,20 @@
 </head>
 <body>
     
-    <!-- New Top Navigation -->
     <header class="top-nav">
         <div class="nav-left">
             {% if session.get('user_id') %}
-                <a href="/dashboard" class="nav-link">Dashboard</a>
                 {% if session.get('role') == 'admin' %}
-                    <a href="/admin/users/add" class="nav-link">Add User</a>
+                    <a href="/admin" class="nav-link">Admin Overview</a>
+                    <a href="/admin/verify" class="nav-link">Verify Donations</a>
+                {% else %}
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
                 {% endif %}
             {% endif %}
         </div>
         
         <div class="nav-center">
             <a href="/">
-                <!-- ONLY the logo, strictly centered -->
                 <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo" class="brand-logo">
             </a>
         </div>
@@ -50,6 +50,5 @@
             <p>&copy; 2026 Bhumi Patna. Change Today, Change Tomorrow.</p>
         </footer>
     </main>
-
 </body>
 </html>

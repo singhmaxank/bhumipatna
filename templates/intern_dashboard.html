@@ -7,6 +7,7 @@
         <h2>Welcome, {{ session.name }}</h2>
         <p class="subtext" style="font-size: 0.95rem;">
             Role: <span class="badge {% if session.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}">{{ session.role | title }}</span>
+            &nbsp; | &nbsp; Head: <strong style="color: var(--primary);">{{ head_name }}</strong>
         </p>
     </div>
 </div>
@@ -24,7 +25,7 @@
         </div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-title">Total Funds Raised</div>
+        <div class="kpi-title">Total Approved Raised</div>
         <div class="kpi-value">₹{{ total_donated }}</div>
     </div>
 </div>
@@ -52,34 +53,39 @@
                     <input type="text" name="utr" required>
                 </div>
             </div>
-            <button type="submit" class="btn" style="width: 100%; margin-top: 0.5rem;">Submit Donation</button>
+            <div class="form-group">
+                <label>Drive Screenshot Link (Optional)</label>
+                <input type="url" name="screenshot_url" placeholder="https://drive.google.com/file/d/...">
+            </div>
+            <button type="submit" class="btn" style="width: 100%; margin-top: 0.5rem;">Submit for Verification</button>
         </form>
     </section>
 
-    <!-- Leaderboard -->
+    <!-- Intern's Collection History -->
     <section class="admin-section" style="margin-bottom: 0;">
         <div class="section-header" style="margin-bottom: 1rem;">
-            <h3 style="margin: 0;">Top Fundraisers</h3>
-            <span class="badge badge-intern">Live</span>
+            <h3 style="margin: 0;">My Collections</h3>
         </div>
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 15%;">Rnk</th>
-                        <th style="width: 55%;">Name</th>
-                        <th style="width: 30%; text-align: right;">Raised</th>
+                        <th style="width: 45%;">Donor Name</th>
+                        <th style="width: 25%;">Amount</th>
+                        <th style="width: 30%; text-align: right;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for leader in leaderboard %}
+                    {% for d in my_donations %}
                     <tr>
-                        <td><strong>#{{ loop.index }}</strong></td>
-                        <td><strong>{{ leader.full_name }}</strong></td>
-                        <td style="text-align: right; color: var(--primary); font-weight: 800;">₹{{ leader.total_raised | default('0') }}</td>
+                        <td><strong>{{ d.donor_name }}</strong></td>
+                        <td><strong style="color: var(--primary);">₹{{ d.amount }}</strong></td>
+                        <td style="text-align: right;">
+                            <span class="badge badge-{{ d.status }}">{{ d.status }}</span>
+                        </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No data available yet.</td></tr>
+                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No donations logged yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

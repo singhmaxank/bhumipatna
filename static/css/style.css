@@ -177,3 +177,7 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
     .admin-section { padding: 1.5rem 1rem; }
     .nav-left .nav-link { display: none; } /* Hide text links on mobile top nav to save space */
 }
+/* Status Badges */
+.badge-pending { background: var(--warning-light); color: #b45309; border-color: #fde68a; }
+.badge-approved { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+.badge-rejected { background: var(--danger-light); color: var(--danger); border-color: #fecaca; }

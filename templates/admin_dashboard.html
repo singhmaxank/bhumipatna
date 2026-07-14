@@ -10,10 +10,9 @@
     <a href="/admin/users/add" class="btn">+ Add New User</a>
 </div>
 
-<!-- Top KPI Cards -->
 <div class="kpi-grid">
     <div class="kpi-card">
-        <div class="kpi-title">Total Platform Raised</div>
+        <div class="kpi-title">Total Platform Raised (Approved)</div>
         <div class="kpi-value">₹{{ total_platform_raised }}</div>
     </div>
     <div class="kpi-card">
@@ -32,12 +31,11 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width: 25%;">User Name</th>
-                    <th style="width: 15%;">Status</th>
-                    <th style="width: 25%;">Tenure Progress</th>
-                    <!-- Removed donor names as requested, updated header to Funds Raised -->
-                    <th style="width: 15%;">Funds Raised</th>
-                    <th style="width: 20%; text-align: right;">Actions</th>
+                    <th style="width: 20%;">User Name</th>
+                    <th style="width: 15%;">Head Admin</th>
+                    <th style="width: 30%;">Approved Funds & Donors</th>
+                    <th style="width: 20%;">Tenure Progress</th>
+                    <th style="width: 15%; text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,12 +43,14 @@
                 <tr>
                     <td>
                         <strong>{{ user.full_name }}</strong>
-                        <span class="subtext">{{ user.username }}</span>
-                    </td>
-                    <td>
-                        <span class="badge {% if user.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}">
+                        <span class="badge {% if user.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}" style="display: block; margin-top: 4px; width: fit-content;">
                             {{ user.role }}
                         </span>
+                    </td>
+                    <td><span class="subtext" style="font-weight: 600; color: var(--primary);">{{ user.head_name }}</span></td>
+                    <td>
+                        <strong style="color: var(--primary); font-size: 1.05rem;">₹{{ user.total_raised }}</strong>
+                        <span class="subtext" style="font-size: 0.75rem;">{{ user.detailed_donors }}</span>
                     </td>
                     <td>
                         <div class="progress-wrap">
@@ -63,10 +63,6 @@
                             </div>
                         </div>
                     </td>
-                    <td>
-                        <!-- Only amount shown now -->
-                        <strong style="color: var(--primary); font-size: 1.05rem;">₹{{ user.total_raised }}</strong>
-                    </td>
                     <td class="action-cell">
                         <a href="/admin/users/edit/{{ user.id }}" class="btn btn-small btn-secondary">Edit</a>
                         <a href="/admin/users/delete/{{ user.id }}" class="btn btn-small btn-danger" onclick="return confirm('Delete user?');">Del</a>
@@ -74,34 +70,6 @@
                 </tr>
                 {% else %}
                 <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</section>
-
-<section class="admin-section">
-    <h3 style="margin-bottom: 1rem;">System Administrators</h3>
-    <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width: 40%;">Admin Name</th>
-                    <th style="width: 30%;">Email</th>
-                    <!-- Fixed bottom line alignment issue here -->
-                    <th style="width: 30%; text-align: right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for admin in admins %}
-                <tr>
-                    <td><strong>{{ admin.full_name }}</strong><span class="subtext">{{ admin.username }}</span></td>
-                    <td>{{ admin.email }}</td>
-                    <td class="action-cell">
-                        <a href="/admin/users/edit/{{ admin.id }}" class="btn btn-small btn-secondary">Edit</a>
-                        <a href="/admin/users/delete/{{ admin.id }}" class="btn btn-small btn-danger" onclick="return confirm('Delete admin?');">Del</a>
-                    </td>
-                </tr>
                 {% endfor %}
             </tbody>
         </table>
