@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;" class="admin-section">
+    <h2 style="margin-bottom: 1.5rem;">Edit User Profile</h2>
+    
+    <form method="POST" action="/admin/users/edit/{{ user.id }}">
+        <div class="form-group">
+            <label for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" value="{{ user.full_name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" value="{{ user.username }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="role">User Role</label>
+            <select id="role" name="role" required>
+                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Administrator</option>
+                <option value="intern" {% if user.role == 'intern' %}selected{% endif %}>Intern</option>
+                <option value="ambassador" {% if user.role == 'ambassador' %}selected{% endif %}>Campus Ambassador</option>
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn" style="flex: 1;">Save Changes</button>
+            <a href="/admin" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

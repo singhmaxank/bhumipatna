@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;" class="admin-section">
+    <h2 style="margin-bottom: 1.5rem;">Add New User</h2>
+    
+    <form method="POST" action="/admin/users/add">
+        <div class="grid-2" style="gap: 1rem; margin-bottom: 0;">
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <input type="text" id="full_name" name="full_name" required>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="grid-2" style="gap: 1rem; margin-bottom: 0;">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="text" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="role">User Role</label>
+                <select id="role" name="role" required>
+                    <option value="intern">Intern</option>
+                    <option value="ambassador">Campus Ambassador</option>
+                    <option value="admin">Administrator</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn" style="flex: 1;">Create User</button>
+            <a href="/admin" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

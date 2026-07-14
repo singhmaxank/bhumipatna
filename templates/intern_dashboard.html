@@ -1,49 +1,50 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<div class="section-header">
     <div>
         <h2>Welcome, {{ session.name }}</h2>
-        <p style="color: var(--text-muted);">Role: {{ session.role | title }}</p>
+        <p style="color: var(--text-muted);">
+            Role: <span class="badge {% if session.role == 'intern' %}badge-intern{% else %}badge-ambassador{% endif %}">{{ session.role | title }}</span>
+        </p>
     </div>
-    <a href="/logout" class="btn btn-small">Logout</a>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+<div class="grid-2">
     <!-- Active Missions -->
-    <section class="admin-section">
+    <section class="admin-section" style="margin-bottom: 0;">
         <h3>Available Missions</h3>
         <table class="data-table">
             <tr>
                 <th>Title</th>
-                <th>Action</th>
+                <th style="text-align: right;">Action</th>
             </tr>
             {% for task in tasks %}
             <tr>
-                <td>{{ task.title }}</td>
+                <td><strong>{{ task.title }}</strong></td>
                 <td style="text-align: right;"><button class="btn btn-small">View</button></td>
             </tr>
             {% else %}
-            <tr><td colspan="2">No missions available at the moment.</td></tr>
+            <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No missions available.</td></tr>
             {% endfor %}
         </table>
     </section>
 
     <!-- Resources -->
-    <section class="admin-section">
+    <section class="admin-section" style="margin-bottom: 0;">
         <h3>Resources & Materials</h3>
         <table class="data-table">
             <tr>
                 <th>Resource Name</th>
-                <th>Link</th>
+                <th style="text-align: right;">Link</th>
             </tr>
             {% for resource in resources %}
             <tr>
-                <td>{{ resource.title }}</td>
-                <td style="text-align: right;"><a href="{{ resource.url }}" target="_blank" class="btn btn-small">Open</a></td>
+                <td><strong>{{ resource.title }}</strong></td>
+                <td style="text-align: right;"><a href="{{ resource.url }}" target="_blank" class="btn btn-small btn-secondary">Open</a></td>
             </tr>
             {% else %}
-            <tr><td colspan="2">No resources posted yet.</td></tr>
+            <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">No resources posted yet.</td></tr>
             {% endfor %}
         </table>
     </section>
