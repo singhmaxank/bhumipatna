@@ -1,61 +1,55 @@
 {% extends 'base.html' %}
 {% block title %}Intern Dashboard{% endblock %}
+{% block page_name %}My Workspace{% endblock %}
 
 {% block content %}
-<div class="dashboard-grid">
+<div class="grid-layout">
     
-    <!-- Chart Card (Doughnut style from ref) -->
-    <div class="ui-card card-span-4" style="align-items: center; text-align: center;">
-        <h3 class="card-title">Tenure Progress</h3>
-        <div style="position: relative; width: 160px; height: 160px; margin: 20px 0;">
-            <canvas id="doughnutChart"></canvas>
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                <span style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">{{ progress_percent }}%</span>
-            </div>
+    <!-- Form Card (Styled like "My Tasks" from reference) -->
+    <div class="bento-card col-4">
+        <div class="card-head">
+            <h3>Log New Collection</h3>
+            <div class="card-action"><i class="ph ph-plus"></i></div>
         </div>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">{{ days_left }} Days Remaining</p>
-    </div>
-
-    <!-- Highlight Card -->
-    <div class="ui-card card-span-4 card-highlight">
-        <h3 class="card-title">My Total Impact</h3>
-        <div class="card-value">₹{{ total_donated }}</div>
-        <div style="margin-top: auto;">
-            <p style="font-size: 0.85rem; opacity: 0.8;">Reporting Head</p>
-            <p style="font-weight: 700;">{{ head_name }}</p>
-        </div>
-    </div>
-
-    <!-- Submission Form -->
-    <div class="ui-card card-span-4" id="logDonation">
-        <h3 class="card-title" style="margin-bottom: 20px;">Log New Donation</h3>
+        
         <form action="/submit-donation" method="POST">
-            <div class="form-group">
+            <div class="input-wrap">
                 <label>Donor Name</label>
-                <input type="text" name="donor_name" class="form-input" required>
+                <input type="text" name="donor_name" class="input-field" required>
+            </div>
+            <div class="input-wrap">
+                <label>Phone Number</label>
+                <input type="text" name="donor_phone" class="input-field" required>
             </div>
             <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
+                <div class="input-wrap" style="flex: 1;">
                     <label>Amount (₹)</label>
-                    <input type="number" name="amount" class="form-input" required>
+                    <input type="number" name="amount" class="input-field" required>
                 </div>
-                <div class="form-group" style="flex: 1;">
+                <div class="input-wrap" style="flex: 1;">
                     <label>UTR ID</label>
-                    <input type="text" name="utr" class="form-input" required>
+                    <input type="text" name="utr" class="input-field" required>
                 </div>
             </div>
-            <button type="submit" class="btn-submit">Submit Entry</button>
+            <button type="submit" class="btn-primary">Submit Record</button>
         </form>
+        
+        <div class="accent-card">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Your Total Impact</p>
+            <div class="big-number" style="font-size: 2rem;">₹{{ total_donated }}</div>
+        </div>
     </div>
 
-    <!-- History Table -->
-    <div class="ui-card card-span-12">
-        <h3 class="card-title">Recent Transactions</h3>
-        <div class="table-wrapper">
-            <table>
+    <!-- Table -->
+    <div class="bento-card col-8">
+        <div class="card-head">
+            <h3>My Submissions</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Donor</th>
+                        <th>Donor Name</th>
                         <th>Amount</th>
                         <th style="text-align: right;">Status</th>
                     </tr>
@@ -63,36 +57,16 @@
                 <tbody>
                     {% for d in my_donations %}
                     <tr>
-                        <td><strong style="color: var(--text-main);">{{ d.donor_name }}</strong></td>
-                        <td><strong style="color: var(--primary);">₹{{ d.amount }}</strong></td>
-                        <td style="text-align: right;"><span class="badge badge-{{ d.status }}">{{ d.status }}</span></td>
+                        <td style="font-weight: 600;">{{ d.donor_name }}</td>
+                        <td style="color: var(--text-title); font-weight: 700;">₹{{ d.amount }}</td>
+                        <td style="text-align: right;"><span class="badge badge-{{ d.status }}">{{ d.status | title }}</span></td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 30px;">No records found.</td></tr>
+                    <tr><td colspan="3" style="text-align: center; padding: 30px; color: var(--text-muted);">No collections logged yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById('doughnutChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Completed', 'Remaining'],
-                datasets: [{
-                    data: [{{ progress_percent }}, 100 - {{ progress_percent }}],
-                    backgroundColor: ['#059669', 'rgba(0,0,0,0.05)'],
-                    borderWidth: 0,
-                    cutout: '80%', // Thin, modern ring
-                    borderRadius: 20
-                }]
-            },
-            options: { plugins: { legend: { display: false }, tooltip: { enabled: false } }, responsive: true }
-        });
-    });
-</script>
 {% endblock %}

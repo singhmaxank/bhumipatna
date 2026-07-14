@@ -1,51 +1,50 @@
 {% extends 'base.html' %}
-{% block title %}Bhumi Patna Portal - Verify Donations{% endblock %}
+{% block title %}Verify Donations{% endblock %}
+{% block page_name %}Verify Pending Funds{% endblock %}
 
 {% block content %}
-<div class="section-header">
-    <div>
-        <h2>Verify Donations</h2>
-        <p class="subtext" style="font-size: 0.95rem;">Review pending payments submitted by interns and ambassadors.</p>
+<div class="grid-layout">
+    <div class="bento-card col-12">
+        <div class="card-head">
+            <h3>Review Submissions</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Submitted By</th>
+                        <th>Donor Name</th>
+                        <th>Amount</th>
+                        <th>UTR / Proof</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in donations %}
+                    <tr>
+                        <td><strong>{{ d.users.full_name }}</strong></td>
+                        <td>
+                            <div style="font-weight: 600;">{{ d.donor_name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">{{ d.donor_phone }}</div>
+                        </td>
+                        <td style="color: var(--primary); font-weight: 700;">₹{{ d.amount }}</td>
+                        <td>
+                            <div style="font-family: monospace; color: var(--text-muted);">{{ d.utr }}</div>
+                            {% if d.screenshot_url %}
+                                <a href="{{ d.screenshot_url }}" target="_blank" style="color: #3b82f6; font-size: 0.85rem; font-weight: 600; text-decoration: none;">View Proof ↗</a>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
+                            <a href="/admin/verify/{{ d.id }}/approved" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; width: auto; background: var(--primary); color: white;">Approve</a>
+                            <a href="/admin/verify/{{ d.id }}/rejected" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; width: auto; background: #fee2e2; color: #ef4444;">Reject</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No pending verifications!</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
-
-<section class="admin-section">
-    <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width: 20%;">Submitted By</th>
-                    <th style="width: 25%;">Donor Details</th>
-                    <th style="width: 15%;">Amount</th>
-                    <th style="width: 20%;">UTR / Proof</th>
-                    <th style="width: 20%; text-align: right;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for d in donations %}
-                <tr>
-                    <td><strong>{{ d.users.full_name }}</strong></td>
-                    <td>
-                        <strong>{{ d.donor_name }}</strong>
-                        <span class="subtext">{{ d.donor_phone }}</span>
-                    </td>
-                    <td><strong style="color: var(--primary);">₹{{ d.amount }}</strong></td>
-                    <td>
-                        <span class="subtext">UTR: {{ d.utr }}</span>
-                        {% if d.screenshot_url %}
-                            <a href="{{ d.screenshot_url }}" target="_blank" style="font-size: 0.8rem; font-weight: 600;">View Proof &nearr;</a>
-                        {% endif %}
-                    </td>
-                    <td class="action-cell">
-                        <a href="/admin/verify/{{ d.id }}/approved" class="btn btn-small" style="background: var(--success);">Approve</a>
-                        <a href="/admin/verify/{{ d.id }}/rejected" class="btn btn-small btn-danger">Reject</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="5" style="text-align: center; padding: 3rem 0; color: var(--text-muted);">No pending donations to review. All caught up!</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</section>
 {% endblock %}

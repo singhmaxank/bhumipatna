@@ -6,17 +6,10 @@
     <title>{% block title %}Bhumi Portal{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}" type="image/png">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Dark Mode Init -->
     <script>
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
+        if (localStorage.getItem('theme') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); }
     </script>
 </head>
 <body>
@@ -24,52 +17,48 @@
     {% if session.get('user_id') %}
     <!-- DESKTOP SIDEBAR -->
     <nav class="app-sidebar">
-        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi Logo" class="sidebar-logo">
+        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo" class="sidebar-logo">
         
         {% if session.get('role') == 'admin' %}
-            <a href="/admin" class="nav-item {% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i> Dashboard</a>
-            <a href="/admin/verify" class="nav-item {% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i> Verify Data</a>
-            <a href="/admin/users/add" class="nav-item {% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i> Add User</a>
+            <a href="/admin" class="nav-btn {% if request.path == '/admin' %}active{% endif %}" title="Dashboard"><i class="ph ph-squares-four"></i></a>
+            <a href="/admin/verify" class="nav-btn {% if request.path == '/admin/verify' %}active{% endif %}" title="Verify"><i class="ph ph-check-circle"></i></a>
+            <a href="/admin/users/add" class="nav-btn {% if request.path == '/admin/users/add' %}active{% endif %}" title="Add User"><i class="ph ph-user-plus"></i></a>
         {% else %}
-            <a href="/dashboard" class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard</a>
+            <a href="/dashboard" class="nav-btn active" title="Dashboard"><i class="ph ph-squares-four"></i></a>
         {% endif %}
         
         <div class="nav-bottom">
-            <a href="/logout" class="nav-item"><i class="ph ph-sign-out"></i> Logout</a>
+            <a href="/logout" class="nav-btn" title="Logout"><i class="ph ph-sign-out"></i></a>
         </div>
     </nav>
 
-    <!-- MOBILE FLOATING NAV -->
+    <!-- MOBILE BOTTOM NAV -->
     <nav class="mobile-nav">
         {% if session.get('role') == 'admin' %}
             <a href="/admin" class="{% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i></a>
-            <a href="/admin/users/add" class="fab"><i class="ph ph-plus"></i></a>
             <a href="/admin/verify" class="{% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i></a>
+            <a href="/admin/users/add" class="{% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i></a>
         {% else %}
             <a href="/dashboard" class="active"><i class="ph ph-squares-four"></i></a>
-            <a href="#logDonation" class="fab"><i class="ph ph-plus"></i></a>
-            <a href="/logout"><i class="ph ph-sign-out"></i></a>
         {% endif %}
+        <a href="/logout"><i class="ph ph-sign-out"></i></a>
     </nav>
     {% endif %}
 
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
+    <main class="main-wrapper">
         {% if session.get('user_id') %}
-        <header class="top-header">
-            <div class="header-greeting">
-                <h1>Let's start strong!</h1>
-                <p>Welcome back, {{ session.name.split()[0] }}. Here is your overview.</p>
+        <header class="top-bar">
+            <div class="page-title">
+                <p>Manage and track impact</p>
+                <h1>{% block page_name %}Dashboard{% endblock %}</h1>
             </div>
             
-            <div class="header-actions">
-                <!-- LIVE SEARCH BAR -->
-                <div class="search-box">
+            <div class="header-tools">
+                <div class="search-pill">
                     <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="globalSearch" placeholder="Search data..." onkeyup="filterData()">
+                    <input type="text" id="globalSearch" placeholder="Search donors or interns..." onkeyup="searchTables()">
                 </div>
-                <!-- THEME TOGGLE -->
-                <button class="icon-btn" onclick="toggleTheme()"><i class="ph ph-moon" id="themeIcon"></i></button>
+                <button class="tool-btn" onclick="toggleTheme()" title="Switch Theme"><i class="ph ph-moon" id="themeIcon"></i></button>
             </div>
         </header>
         {% endif %}
@@ -77,7 +66,7 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div style="padding: 1rem; border-radius: 12px; margin-bottom: 20px; font-weight: 600; background: {% if category=='error' %}#fee2e2; color: #ef4444;{% else %}#d1fae5; color: #059669;{% endif %}">
+                    <div style="padding: 16px 24px; border-radius: 16px; margin-bottom: 25px; font-weight: 600; font-size: 0.95rem; background: {% if category=='error' %}#fee2e2; color: #ef4444;{% else %}#d1fae5; color: #059669;{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -88,39 +77,36 @@
     </main>
 
     <script>
-        // Theme Toggle Logic
         function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
+            const doc = document.documentElement;
+            const newTheme = doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            doc.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             document.getElementById('themeIcon').className = newTheme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
             
-            // Re-render charts
             if (typeof Chart !== 'undefined') {
                 Chart.helpers.each(Chart.instances, function(instance){
-                    const isDark = newTheme === 'dark';
-                    instance.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
-                    instance.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
+                    instance.options.scales.x.ticks.color = newTheme === 'dark' ? '#94a3b8' : '#64748b';
+                    instance.options.scales.y.ticks.color = newTheme === 'dark' ? '#94a3b8' : '#64748b';
                     instance.update();
                 });
             }
         }
         document.getElementById('themeIcon').className = localStorage.getItem('theme') === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
 
-        // Live Search Logic
-        function filterData() {
+        // Universal Search Function for all tables
+        function searchTables() {
             let input = document.getElementById("globalSearch").value.toLowerCase();
-            let tables = document.querySelectorAll("table");
+            let tables = document.querySelectorAll(".data-table");
             tables.forEach(table => {
-                let trs = table.getElementsByTagName("tr");
-                for (let i = 1; i < trs.length; i++) {
-                    let tds = trs[i].getElementsByTagName("td");
+                let rows = table.getElementsByTagName("tr");
+                for (let i = 1; i < rows.length; i++) {
+                    let cells = rows[i].getElementsByTagName("td");
                     let match = false;
-                    for (let j = 0; j < tds.length; j++) {
-                        if (tds[j] && (tds[j].textContent || tds[j].innerText).toLowerCase().indexOf(input) > -1) { match = true; break; }
+                    for (let j = 0; j < cells.length; j++) {
+                        if (cells[j] && cells[j].innerText.toLowerCase().indexOf(input) > -1) { match = true; break; }
                     }
-                    trs[i].style.display = match ? "" : "none";
+                    rows[i].style.display = match ? "" : "none";
                 }
             });
         }

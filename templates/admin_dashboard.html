@@ -1,85 +1,65 @@
 {% extends 'base.html' %}
 {% block title %}Admin Dashboard{% endblock %}
+{% block page_name %}Project Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-grid">
+<div class="grid-layout">
     
-    <!-- Highlight Card (Top Left) -->
-    <div class="ui-card card-span-4 card-highlight">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-                <h3 class="card-title">Total Raised</h3>
-                <div class="card-value">₹{{ total_platform_raised }}</div>
-                <p class="subtext" style="margin-top: 5px;">Platform total (Approved)</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 50%;">
-                <i class="ph ph-lightning" style="font-size: 1.5rem; color: white;"></i>
-            </div>
+    <!-- Projects Overview (Doughnut Chart) -->
+    <div class="bento-card col-4" style="text-align: center;">
+        <div class="card-head">
+            <h3>Workforce Overview</h3>
+            <div class="card-action"><i class="ph ph-arrow-up-right"></i></div>
+        </div>
+        <div style="position: relative; width: 180px; height: 180px; margin: 10px auto;">
+            <canvas id="overviewChart"></canvas>
+        </div>
+        <div style="display: flex; justify-content: space-around; margin-top: 20px; font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">
+            <span><span style="color: #059669;">●</span> Interns: {{ interns|length }}</span>
+            <span><span style="color: #f59e0b;">●</span> Ambassadors: {{ ambassadors|length }}</span>
         </div>
     </div>
 
-    <!-- Stats Card -->
-    <div class="ui-card card-span-4">
-        <h3 class="card-title">Active Workforce</h3>
-        <div style="display: flex; gap: 30px; margin-top: 10px;">
-            <div>
-                <div class="card-value">{{ interns|length }}</div>
-                <p style="color: var(--text-muted); font-size: 0.85rem;">Interns</p>
-            </div>
-            <div>
-                <div class="card-value" style="color: var(--primary);">{{ ambassadors|length }}</div>
-                <p style="color: var(--text-muted); font-size: 0.85rem;">Ambassadors</p>
+    <!-- Income VS Expense (Line Graph) -->
+    <div class="bento-card col-8">
+        <div class="card-head">
+            <h3>Funding Timeline</h3>
+            <div style="display: flex; gap: 10px; align-items: center; font-size: 0.85rem; color: var(--text-muted);">
+                <span style="color: #3b82f6; font-weight: 600;">●</span> Total Raised: ₹{{ total_platform_raised }}
             </div>
         </div>
-    </div>
-
-    <!-- Chart Card (Top Right) -->
-    <div class="ui-card card-span-4">
-        <h3 class="card-title">Top Fundraiser</h3>
-        {% if leaderboard %}
-            <div style="text-align: center;">
-                <h2 style="font-size: 1.3rem; margin-bottom: 5px; color: var(--text-main);">{{ leaderboard[0].full_name }}</h2>
-                <div class="card-value" style="color: var(--primary);">₹{{ leaderboard[0].total_raised }}</div>
-            </div>
-        {% else %}
-            <p style="text-align: center; color: var(--text-muted);">No data yet.</p>
-        {% endif %}
-    </div>
-
-    <!-- Graphical Data: Smooth Line Chart (From Mobile Ref) -->
-    <div class="ui-card card-span-12">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-            <h3 class="card-title">Funding Trends</h3>
-        </div>
-        <div style="position: relative; height: 300px; width: 100%;">
+        <div style="position: relative; height: 230px; width: 100%;">
             <canvas id="trendChart"></canvas>
         </div>
     </div>
 
-    <!-- Data Table -->
-    <div class="ui-card card-span-12">
-        <h3 class="card-title">Intern Directory</h3>
-        <div class="table-wrapper">
-            <table>
+    <!-- Intern Database Table -->
+    <div class="bento-card col-12">
+        <div class="card-head">
+            <h3>Intern Database</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>User</th>
-                        <th>Role</th>
-                        <th>Approved Funds</th>
-                        <th>Head Admin</th>
+                        <th>Name & Role</th>
+                        <th>Reporting Head</th>
+                        <th>Total Approved</th>
                         <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for user in interns + ambassadors %}
                     <tr>
-                        <td><strong style="color: var(--text-main);">{{ user.full_name }}</strong></td>
-                        <td><span class="badge badge-{% if user.role == 'intern' %}intern{% else %}ambassador{% endif %}">{{ user.role }}</span></td>
-                        <td><strong style="color: var(--primary);">₹{{ user.total_raised }}</strong></td>
-                        <td style="color: var(--text-muted); font-size: 0.9rem;">{{ user.head_name }}</td>
+                        <td>
+                            <div style="font-weight: 600; margin-bottom: 4px;">{{ user.full_name }}</div>
+                            <span class="badge badge-{% if user.role == 'intern' %}intern{% else %}pending{% endif %}">{{ user.role | title }}</span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{ user.head_name }}</td>
+                        <td style="color: var(--primary); font-weight: 700;">₹{{ user.total_raised }}</td>
                         <td style="text-align: right;">
-                            <a href="/admin/users/edit/{{ user.id }}" style="color: var(--text-muted); margin-right: 10px;"><i class="ph ph-pencil-simple" style="font-size: 1.2rem;"></i></a>
-                            <a href="/admin/users/delete/{{ user.id }}" onclick="return confirm('Delete?');" style="color: #ef4444;"><i class="ph ph-trash" style="font-size: 1.2rem;"></i></a>
+                            <a href="/admin/users/edit/{{ user.id }}" style="color: var(--text-muted); margin-right: 15px;"><i class="ph ph-pencil-simple" style="font-size: 1.3rem;"></i></a>
+                            <a href="/admin/users/delete/{{ user.id }}" onclick="return confirm('Delete?');" style="color: #ef4444;"><i class="ph ph-trash" style="font-size: 1.3rem;"></i></a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -91,33 +71,27 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById('trendChart').getContext('2d');
+        // Doughnut Chart
+        const ctx1 = document.getElementById('overviewChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: { labels: ['Interns', 'Ambassadors'], datasets: [{ data: [{{ interns|length }}, {{ ambassadors|length }}], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 0, cutout: '65%' }] },
+            options: { plugins: { legend: { display: false } }, responsive: true }
+        });
+
+        // Line Chart (Smooth like reference)
+        const ctx2 = document.getElementById('trendChart').getContext('2d');
         const labels = [{% for user in leaderboard[:8] %}'{{ user.full_name.split()[0] }}',{% endfor %}];
         const data = [{% for user in leaderboard[:8] %}{{ user.total_raised }},{% endfor %}];
         
-        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(5, 150, 105, 0.4)');
-        gradient.addColorStop(1, 'rgba(5, 150, 105, 0)');
+        let gradient = ctx2.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)'); // Blue tint from reference
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
 
-        new Chart(ctx, {
+        new Chart(ctx2, {
             type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Raised (₹)', data: data,
-                    borderColor: '#059669', backgroundColor: gradient,
-                    borderWidth: 4, fill: true, tension: 0.4, // Tension creates the smooth curves
-                    pointBackgroundColor: '#ffffff', pointBorderColor: '#059669', pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { display: false }, ticks: { font: { family: 'Inter' } } },
-                    y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
-                }
-            }
+            data: { labels: labels, datasets: [{ data: data, borderColor: '#3b82f6', backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#ffffff', pointBorderColor: '#3b82f6', pointRadius: 5 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true } } }
         });
     });
 </script>
