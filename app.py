@@ -228,16 +228,26 @@ def edit_user(user_id):
 @admin_required
 def delete_user(user_id):
     try:
+        # 1. Clear task completions by this user
         try: supabase.table('task_completions').delete().eq('user_id', user_id).execute()
         except: pass 
+        
+        # 2. Clear donations logged by this user
         try: supabase.table('donations').delete().eq('user_id', user_id).execute()
         except: pass
+
+        # 3. FIX: Clear tasks created by this admin user so Supabase doesn't block deletion
+        try: supabase.table('tasks').delete().eq('created_by', user_id).execute()
+        except: pass
+
+        # 4. Finally, delete the user
         supabase.table('users').delete().eq('id', user_id).execute()
         flash("User deleted successfully!", "success")
+        
     except Exception as e:
         flash(f"Database Blocked Deletion: {str(e)}", "error")
+        
     return redirect(url_for('admin_dashboard'))
-
 @app.route('/admin/missions/delete/<int:task_id>')
 @admin_required
 def delete_mission(task_id):
