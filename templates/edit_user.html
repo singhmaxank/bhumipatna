@@ -1,33 +1,33 @@
 {% extends 'base.html' %}
-{% block title %}Edit User{% endblock %}
-{% block page_name %}Modify Account{% endblock %}
+{% block title %}Modify Profile Parameters{% endblock %}
+{% block page_name %}Update Identity Access Attributes{% endblock %}
 
 {% block content %}
 <div class="grid" style="justify-content: center; display: flex;">
-    <div class="card" style="width: 100%; max-width: 700px;">
-        <h3 class="card-title" style="margin-bottom: 24px;">Update Details for {{ user.full_name }}</h3>
+    <div class="card" style="width: 100%; max-width: 720px;">
+        <h3 class="card-title" style="margin-bottom: 24px; color: var(--text-dark); font-size: 0.95rem;">Modify Parameters for: {{ user.full_name }}</h3>
         
         <form method="POST" action="/admin/users/edit/{{ user.id }}">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="form-group"><label>Full Name</label><input type="text" name="full_name" value="{{ user.full_name }}" class="form-control" required></div>
-                <div class="form-group"><label>Username</label><input type="text" name="username" value="{{ user.username }}" class="form-control" required></div>
+                <div class="form-group"><label>Profile Full Name String</label><input type="text" name="full_name" value="{{ user.full_name }}" class="form-control" required></div>
+                <div class="form-group"><label>Directory Registry Username</label><input type="text" name="username" value="{{ user.username }}" class="form-control" required></div>
             </div>
             
-            <div class="form-group"><label>Email Address</label><input type="email" name="email" value="{{ user.email }}" class="form-control" required></div>
+            <div class="form-group"><label>Verified Access Email Target</label><input type="email" name="email" value="{{ user.email }}" class="form-control" required></div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="form-group">
-                    <label>Role</label>
+                    <label>Directory Access Level Assignment Role</label>
                     <select name="role" class="form-control" required>
-                        <option value="intern" {% if user.role == 'intern' %}selected{% endif %}>Intern</option>
-                        <option value="ambassador" {% if user.role == 'ambassador' %}selected{% endif %}>Campus Ambassador</option>
-                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Administrator</option>
+                        <option value="intern" {% if user.role == 'intern' %}selected{% endif %}>Intern Workspace User</option>
+                        <option value="ambassador" {% if user.role == 'ambassador' %}selected{% endif %}>Campus Ambassador Lead</option>
+                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Main System Administrator</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Reporting Head</label>
+                    <label>Assigned Lead Supervisor</label>
                     <select name="head_id" class="form-control">
-                        <option value="">None</option>
+                        <option value="">None (Direct Root Platform Escalation)</option>
                         {% for admin in admins %}
                             <option value="{{ admin.id }}" {% if user.head_id == admin.id %}selected{% endif %}>{{ admin.full_name }}</option>
                         {% endfor %}
@@ -36,13 +36,13 @@
             </div>
             
             <div class="form-group" style="margin-top: 10px; padding-top: 20px; border-top: 1px solid var(--border-color);">
-                <label style="color: var(--primary);">Change Password</label>
-                <input type="text" name="new_password" placeholder="Leave blank to keep current password" class="form-control">
+                <label style="color: var(--primary); font-weight: 700;">Override Authentication Password Parameter</label>
+                <input type="text" name="new_password" placeholder="Leave blank to maintain current secure hash string" class="form-control">
             </div>
             
             <div style="display: flex; gap: 16px; margin-top: 10px;">
-                <button type="submit" class="btn-main" style="flex: 2;">Save Changes</button>
-                <a href="/admin" class="btn-main" style="flex: 1; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">Cancel</a>
+                <button type="submit" class="btn-main" style="flex: 2;">Commit Parameter Modification</button>
+                <a href="/admin" class="btn-main" style="flex: 1; background: transparent; border: 1px solid var(--border-color); color: var(--text-dark);">Abort Modification</a>
             </div>
         </form>
     </div>

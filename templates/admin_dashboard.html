@@ -1,66 +1,66 @@
 {% extends 'base.html' %}
 {% block title %}Admin Overview{% endblock %}
-{% block page_name %}Dashboard{% endblock %}
+{% block page_name %}Operational Analytics{% endblock %}
 
 {% block content %}
 <div class="grid">
     
-    <!-- Top Mini Cards -->
+    <!-- Mini Metric Blocks -->
     <div class="card col-3 card-gradient">
-        <div class="card-header"><span class="card-title">Total Raised</span><i class="ph ph-wallet"></i></div>
+        <div class="card-header"><span class="card-title">Consolidated Funding</span><i class="ph ph-wallet" style="font-size: 1.2rem;"></i></div>
         <div class="stat-value">₹{{ total_platform_raised }}</div>
-        <div class="stat-label">Verified & Approved Funds</div>
+        <div class="stat-label">Net Verified Balance Impact</div>
     </div>
     
     <div class="card col-3">
-        <div class="card-header"><span class="card-title">Interns</span><i class="ph ph-users"></i></div>
+        <div class="card-header"><span class="card-title">Registered Interns</span><i class="ph ph-users" style="font-size: 1.2rem;"></i></div>
         <div class="stat-value">{{ interns|length }}</div>
-        <div class="stat-label">Active on platform</div>
+        <div class="stat-label">Directory Operational Staff</div>
     </div>
     
     <div class="card col-3">
-        <div class="card-header"><span class="card-title">Ambassadors</span><i class="ph ph-student"></i></div>
+        <div class="card-header"><span class="card-title">Ambassadors</span><i class="ph ph-student" style="font-size: 1.2rem;"></i></div>
         <div class="stat-value">{{ ambassadors|length }}</div>
-        <div class="stat-label">Campus leaders</div>
+        <div class="stat-label">Campus Relations Leads</div>
     </div>
     
     <div class="card col-3">
-        <div class="card-header"><span class="card-title">Top Performer</span><i class="ph ph-trophy"></i></div>
+        <div class="card-header"><span class="card-title">Top Workstation</span><i class="ph ph-trophy" style="font-size: 1.2rem;"></i></div>
         {% if leaderboard %}
-            <div class="stat-value" style="font-size: 1.4rem;">{{ leaderboard[0].full_name }}</div>
-            <div class="stat-label" style="color: var(--primary); font-weight: 700;">₹{{ leaderboard[0].total_raised }} Raised</div>
+            <div class="stat-value" style="font-size: 1.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ leaderboard[0].full_name }}</div>
+            <div class="stat-label" style="color: var(--primary); font-weight: 700;">₹{{ leaderboard[0].total_raised }} Platform Impact</div>
         {% else %}
-            <div class="stat-value" style="font-size: 1.2rem;">No data</div>
+            <div class="stat-value" style="font-size: 1.2rem;">No logs calculated</div>
         {% endif %}
     </div>
 
-    <!-- Charts Row -->
+    <!-- Data Visualization Module Canvas Blocks -->
     <div class="card col-4">
-        <h3 class="card-title" style="margin-bottom: 20px;">Workforce Breakdown</h3>
+        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">Workforce Metrics</h3>
         <div style="position: relative; height: 220px; width: 100%;">
             <canvas id="donutChart"></canvas>
         </div>
     </div>
 
     <div class="card col-8">
-        <h3 class="card-title" style="margin-bottom: 20px;">Funding Trend</h3>
+        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">Performance Curve Metrics</h3>
         <div style="position: relative; height: 220px; width: 100%;">
             <canvas id="areaChart"></canvas>
         </div>
     </div>
 
-    <!-- Recent Activity Table -->
+    <!-- Main Operational Workspace Data Directory Grid -->
     <div class="card col-12">
-        <div class="card-header"><h3 class="card-title">User Directory</h3></div>
+        <div class="card-header"><h3 class="card-title" style="font-size: 0.95rem; color: var(--text-dark);">Active Workforce Directory</h3></div>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th>User Details</th>
-                        <th>Role</th>
-                        <th>Approved Funds</th>
-                        <th>Reporting Head</th>
-                        <th style="text-align: right;">Action</th>
+                        <th>Staff Profile Name</th>
+                        <th>Directory Target Access Role</th>
+                        <th>Approved Verified Impact</th>
+                        <th>Assigned Reporting Manager</th>
+                        <th style="text-align: right;">System Adjust Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,21 +68,21 @@
                     <tr>
                         <td>
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-app); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary);">
+                                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-app); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary);">
                                     {{ user.full_name[0] }}
                                 </div>
                                 <div>
-                                    <div style="font-weight: 700;">{{ user.full_name }}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ user.username }}</div>
+                                    <div style="font-weight: 700; color: var(--text-dark);">{{ user.full_name }}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">@{{ user.username }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td><span class="badge badge-{% if user.role == 'intern' %}intern{% else %}ambassador{% endif %}">{{ user.role | title }}</span></td>
-                        <td style="color: var(--primary); font-weight: 700;">₹{{ user.total_raised }}</td>
-                        <td>{{ user.head_name }}</td>
+                        <td><span class="badge badge-{% if user.role == 'intern' %}intern{% else %}ambassador{% endif %}">{{ user.role }}</span></td>
+                        <td style="color: var(--primary); font-weight: 800;">₹{{ user.total_raised }}</td>
+                        <td style="color: var(--text-main);">{{ user.head_name }}</td>
                         <td style="text-align: right;">
-                            <a href="/admin/users/edit/{{ user.id }}" style="color: var(--text-muted); margin-right: 12px;"><i class="ph ph-pencil-simple" style="font-size: 1.25rem;"></i></a>
-                            <a href="/admin/users/delete/{{ user.id }}" onclick="return confirm('Delete user?');" style="color: #ef4444;"><i class="ph ph-trash" style="font-size: 1.25rem;"></i></a>
+                            <a href="/admin/users/edit/{{ user.id }}" style="color: var(--text-muted); margin-right: 12px;" title="Edit Access Parameters"><i class="ph ph-pencil-simple" style="font-size: 1.2rem;"></i></a>
+                            <a href="/admin/users/delete/{{ user.id }}" onclick="return confirm('Confirm permanent system directory deletion?');" style="color: #ef4444;" title="Purge Record"><i class="ph ph-trash" style="font-size: 1.2rem;"></i></a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -94,17 +94,16 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Doughnut Chart
     new Chart(document.getElementById('donutChart').getContext('2d'), {
         type: 'doughnut',
-        data: { labels: ['Interns', 'Ambassadors'], datasets: [{ data: [{{ interns|length }}, {{ ambassadors|length }}], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 0, cutout: '70%' }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } } }
+        data: { labels: ['Interns', 'Ambassadors'], datasets: [{ data: [{{ interns|length }}, {{ ambassadors|length }}], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 0, cutout: '72%' }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { family: 'Inter', weight: 600 } } } } }
     });
 
-    // Area Chart
     const ctx = document.getElementById('areaChart').getContext('2d');
-    let gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(5, 150, 105, 0.2)'); gradient.addColorStop(1, 'rgba(5, 150, 105, 0)');
+    let gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(5, 150, 105, 0.2)'); 
+    gradient.addColorStop(1, 'rgba(5, 150, 105, 0)');
     
     new Chart(ctx, {
         type: 'line',
@@ -112,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function() {
             labels: [{% for user in leaderboard[:8] %}'{{ user.full_name.split()[0] }}',{% endfor %}],
             datasets: [{ data: [{% for user in leaderboard[:8] %}{{ user.total_raised }},{% endfor %}], borderColor: '#059669', backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff' }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { border: { dash: [4, 4] }, grid: { color: 'rgba(0,0,0,0.05)' } } } }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { border: { dash: [4, 4] }, grid: { color: 'rgba(0,0,0,0.04)' } } } }
     });
 });
 </script>

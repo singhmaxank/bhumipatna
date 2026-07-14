@@ -3,69 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Dynamic Title Formatting -->
     <title>Bhumi Patna - {% block title %}{% endblock %}</title>
     
-    <!-- Global Favicon -->
-    <link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}" type="image/png">
+    <!-- Global Favicon Engine Routing -->
+    <link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}?v=2" type="image/png">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
 </head>
 <body>
 
 <div class="app-container">
     {% if session.get('user_id') %}
-    <!-- DESKTOP SIDEBAR -->
+    <!-- DESKTOP FIXED PANEL SIDEBAR -->
     <aside class="sidebar">
         <a href="/" class="sidebar-brand">
             <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo">
-            Bhumi
+            Bhumi Patna
         </a>
         <nav class="nav-menu">
-            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; padding-left: 10px;">MENU</div>
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; padding-left: 10px;">CORE MANAGEMENT</div>
             
             {% if session.get('role') == 'admin' %}
                 <a href="/admin" class="nav-item {% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i> Dashboard</a>
                 <a href="/admin/verify" class="nav-item {% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i> Verify Donations</a>
-                <a href="/admin/users/add" class="nav-item {% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i> Add User</a>
+                <a href="/admin/users/add" class="nav-item {% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i> Account Manager</a>
+                <a href="/admin/export" class="nav-item"><i class="ph ph-file-pdf"></i> Export Report (PDF)</a>
             {% else %}
-                <a href="/dashboard" class="nav-item active"><i class="ph ph-squares-four"></i> Overview</a>
+                <a href="/dashboard" class="nav-item active"><i class="ph ph-squares-four"></i> Workstation Overview</a>
             {% endif %}
         </nav>
         <div class="nav-bottom nav-menu">
-            <a href="/logout" class="nav-item"><i class="ph ph-sign-out"></i> Logout</a>
+            <a href="/logout" class="nav-item"><i class="ph ph-sign-out"></i> End Session</a>
         </div>
     </aside>
 
-    <!-- MOBILE BOTTOM NAV -->
+    <!-- MOBILE RESILIENT TAB NAVIGATION LAYER -->
     <nav class="mobile-nav">
         {% if session.get('role') == 'admin' %}
             <a href="/admin" class="{% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i><span>Home</span></a>
             <a href="/admin/verify" class="{% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i><span>Verify</span></a>
-            <a href="/admin/users/add" class="{% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i><span>Add</span></a>
+            <a href="/admin/users/add" class="{% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i><span>Manage</span></a>
         {% else %}
             <a href="/dashboard" class="active"><i class="ph ph-squares-four"></i><span>Home</span></a>
         {% endif %}
-        <a href="/logout"><i class="ph ph-sign-out"></i><span>Logout</span></a>
+        <a href="/logout"><i class="ph ph-sign-out"></i><span>Exit</span></a>
     </nav>
     {% endif %}
 
-    <!-- MAIN APP AREA -->
+    <!-- APPLICATION RUNTIME CONTENT CANVAS -->
     <main class="main-content">
         {% if session.get('user_id') %}
         <header class="header">
             <div class="header-title">
-                <h1>{% block page_name %}Dashboard{% endblock %}</h1>
+                <h1>{% block page_name %}{% endblock %}</h1>
             </div>
             <div class="header-actions">
                 <div class="search-bar">
                     <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="globalSearch" placeholder="Search records..." onkeyup="searchTables()">
+                    <input type="text" id="globalSearch" placeholder="Filter active view records..." onkeyup="searchTables()">
                 </div>
-                <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme"><i class="ph ph-moon" id="themeIcon"></i></button>
+                <button class="icon-btn" onclick="toggleTheme()" title="Switch Theme Modes"><i class="ph ph-moon" id="themeIcon"></i></button>
             </div>
         </header>
         {% endif %}

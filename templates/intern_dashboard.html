@@ -1,86 +1,86 @@
 {% extends 'base.html' %}
-{% block title %}Intern Panel{% endblock %}
-{% block page_name %}My Workspace{% endblock %}
+{% block title %}Workstation Console{% endblock %}
+{% block page_name %}My Workspace Dashboard{% endblock %}
 
 {% block content %}
 <div class="grid">
     
-    <!-- Top Stats -->
+    <!-- Workspace Performance Snapshot Indicators -->
     <div class="card col-6 card-gradient">
-        <div class="card-header"><span class="card-title">Total Approved Raised</span><i class="ph ph-wallet"></i></div>
+        <div class="card-header"><span class="card-title">My Approved Collection Records</span><i class="ph ph-shield-check" style="font-size: 1.3rem;"></i></div>
         <div class="stat-value">₹{{ total_donated }}</div>
-        <div class="stat-label">Reporting Head: {{ head_name }}</div>
+        <div class="stat-label">Assigned Supervisor Leader: {{ head_name }}</div>
     </div>
 
     <div class="card col-6" style="flex-direction: row; align-items: center; justify-content: space-between;">
         <div>
-            <div class="card-title">Tenure Progress</div>
-            <div class="stat-value" style="font-size: 2.5rem;">{{ progress_percent }}%</div>
-            <div class="stat-label">{{ days_left }} Days Remaining</div>
+            <div class="card-title">Tenure Progress Status</div>
+            <div class="stat-value" style="font-size: 2.2rem; margin: 2px 0;">{{ progress_percent }}%</div>
+            <div class="stat-label">{{ days_left }} Days Till Operational Evaluation</div>
         </div>
-        <div style="width: 120px; height: 120px;">
+        <div style="width: 100px; height: 100px;">
             <canvas id="progChart"></canvas>
         </div>
     </div>
 
-    <!-- Log Form & Table -->
+    <!-- Data Logger Submission Card Interface -->
     <div class="card col-4">
-        <h3 class="card-title" style="margin-bottom: 24px;">Log Donation</h3>
+        <h3 class="card-title" style="margin-bottom: 20px; color: var(--text-dark); font-size: 0.95rem;">Log Collection Record</h3>
         <form action="/submit-donation" method="POST">
             <div class="form-group">
-                <label>Donor Name</label>
-                <input type="text" name="donor_name" class="form-control" required>
+                <label>Donor Profile Full Name</label>
+                <input type="text" name="donor_name" class="form-control" placeholder="John Doe" required>
             </div>
             <div class="form-group">
-                <label>Donor Phone</label>
-                <input type="text" name="donor_phone" class="form-control" required>
+                <label>Donor Phone Number</label>
+                <input type="tel" name="donor_phone" class="form-control" placeholder="Contact number" required>
             </div>
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Amount (₹)</label>
-                    <input type="number" name="amount" class="form-control" required>
+            <div style="display: flex; gap: 16px;">
+                <div class="form-group">
+                    <label>Collected (₹)</label>
+                    <input type="number" name="amount" class="form-control" placeholder="500" required>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>UTR ID</label>
-                    <input type="text" name="utr" class="form-control" required>
+                <div class="form-group">
+                    <label>UTR ID Code</label>
+                    <input type="text" name="utr" class="form-control" placeholder="Transaction ID" required>
                 </div>
             </div>
             
-            <!-- NEW SCREENSHOT LINK -->
             <div class="form-group">
-                <label>Payment Proof (Google Drive URL)</label>
+                <label>Payment Proof Document (Google Drive URL)</label>
                 <input type="url" name="screenshot_url" class="form-control" placeholder="https://drive.google.com/file/d/..." required>
             </div>
             
-            <button type="submit" class="btn-main" style="margin-top: 10px;">Submit Record</button>
+            <button type="submit" class="btn-main" style="margin-top: 5px;">Transmit Log Record</button>
         </form>
     </div>
 
+    <!-- Personal Operations Log Table Data View Grid -->
     <div class="card col-8">
-        <div class="card-header"><h3 class="card-title">My Transactions</h3></div>
+        <div class="card-header"><h3 class="card-title" style="font-size: 0.95rem; color: var(--text-dark);">Personal History Transmission Registry</h3></div>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th>Donor Details</th>
-                        <th>Amount</th>
-                        <th>UTR</th>
-                        <th style="text-align: right;">Status</th>
+                        <th>Target Donor Details</th>
+                        <th>Collected Value</th>
+                        <th>UTR Serial Index Reference</th>
+                        <th style="text-align: right;">Review State</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for d in my_donations %}
                     <tr>
                         <td>
-                            <div style="font-weight: 700;">{{ d.donor_name }}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">{{ d.donor_phone }}</div>
+                            <div style="font-weight: 700; color: var(--text-dark);">{{ d.donor_name }}</div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ d.donor_phone }}</div>
                         </td>
                         <td style="color: var(--text-dark); font-weight: 700;">₹{{ d.amount }}</td>
-                        <td style="font-family: monospace; color: var(--text-muted);">{{ d.utr }}</td>
-                        <td style="text-align: right;"><span class="badge badge-{{ d.status }}">{{ d.status | title }}</span></td>
+                        <td style="font-family: monospace; color: var(--text-muted); font-size: 0.85rem;">{{ d.utr }}</td>
+                        <td style="text-align: right;"><span class="badge badge-{{ d.status }}">{{ d.status }}</span></td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted);">No records found.</td></tr>
+                    <tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.9rem;">No transaction logs transmitted to tracking system data registry.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -93,7 +93,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         new Chart(document.getElementById('progChart').getContext('2d'), {
             type: 'doughnut',
-            data: { labels: ['Done', 'Left'], datasets: [{ data: [{{ progress_percent }}, 100 - {{ progress_percent }}], backgroundColor: ['#059669', 'rgba(0,0,0,0.05)'], borderWidth: 0, cutout: '80%' }] },
+            data: { labels: ['Log Context', 'Pending'], datasets: [{ data: [{{ progress_percent }}, 100 - {{ progress_percent }}], backgroundColor: ['#059669', 'rgba(0,0,0,0.04)'], borderWidth: 0, cutout: '82%' }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
         });
     });
