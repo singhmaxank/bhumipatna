@@ -103,12 +103,7 @@ def intern_dashboard():
             except Exception:
                 pass 
 
-        # Aggregate Donations to calculate Funds Raised
-        donations_data = []
-        try:
-            donations_data = supabase.table('donations').select('*').execute().data
-        except Exception:
-            pass
+        donations_data = supabase.table('donations').select('*').execute().data or []
             
         raised_by_user = {}
         for d in donations_data:
@@ -116,7 +111,6 @@ def intern_dashboard():
             amt = float(d.get('amount') or 0)
             raised_by_user[uid] = raised_by_user.get(uid, 0) + amt
 
-        # Fetch Leaderboard (Sorted by total funds raised)
         all_users = supabase.table('users').select('*').execute().data
         for u in all_users:
             u['total_raised'] = raised_by_user.get(u.get('id'), 0)
@@ -124,88 +118,83 @@ def intern_dashboard():
         leaderboard = sorted([u for u in all_users if u.get('role') != 'admin'], 
                              key=lambda x: x.get('total_raised', 0), reverse=True)[:5]
         
-        # Current User's Total Donated
         total_donated = raised_by_user.get(session['user_id'], 0)
-
-        # Fetch Tasks and Resources
-        tasks = []
-        resources = []
-        try:
-            tasks = supabase.table('tasks').select('*').execute().data
-            resources = supabase.table('resources').select('*').execute().data
-        except Exception:
-            pass
+        tasks = supabase.table('tasks').select('*').execute().data or []
+        resources = supabase.table('resources').select('*').execute().data or []
         
         return render_template('intern_dashboard.html', 
-                               tasks=tasks, 
-                               resources=resources,
-                               user_data=user_data,
-                               progress_percent=progress_percent,
-                               days_left=days_left,
-                               leaderboard=leaderboard,
-                               total_donated=total_donated)
-                               
+                               tasks=tasks, resources=resources, user_data=user_data,
+                               progress_percent=progress_percent, days_left=days_left,
+                               leaderboard=leaderboard, total_donated=total_donated)
     except Exception as e:
         return f"<h3>Dashboard Error:</h3><p>{str(e)}</p>"
 
 @app.route('/submit-donation', methods=['POST'])
 @login_required
 def submit_donation():
-    donor_name = request.form.get('donor_name')
-    donor_phone = request.form.get('donor_phone')
-    amount = request.form.get('amount')
-    utr = request.form.get('utr')
-    screenshot_url = request.form.get('screenshot_url')
-    
     try:
         supabase.table('donations').insert({
             'user_id': session['user_id'],
-            'donor_name': donor_name,
-            'donor_phone': donor_phone,
-            'amount': amount,
-            'utr': utr,
-            'screenshot_url': screenshot_url
+            'donor_name': request.form.get('donor_name'),
+            'donor_phone': request.form.get('donor_phone'),
+            'amount': request.form.get('amount'),
+            'utr': request.form.get('utr'),
+            'screenshot_url': request.form.get('screenshot_url')
         }).execute()
-        flash("Donation logged successfully! It is pending admin verification.", "success")
+        flash("Donation logged successfully! Pending admin verification.", "success")
     except Exception as e:
         flash(f"Error logging donation. Error: {str(e)}", "error")
-        
     return redirect(url_for('intern_dashboard'))
 
 # --- ADMIN DASHBOARD ---
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
-    all_users = supabase.table('users').select('*').execute().data
+    all_users = supabase.table('users').select('*').execute().data or []
+    donations_data = supabase.table('donations').select('*').execute().data or []
+    tasks = supabase.table('tasks').select('*').execute().data or []
+    resources = supabase.table('resources').select('*').execute().data or []
     
+    today = date.today()
+    total_platform_raised = 0
+
+    for u in all_users:
+        # Calculate Progress
+        start = u.get('tenure_start')
+        end = u.get('tenure_end')
+        u['progress'] = 0
+        u['days_left'] = 0
+        if start and end:
+            try:
+                s_date = datetime.strptime(str(start).split('T')[0], '%Y-%m-%d').date()
+                e_date = datetime.strptime(str(end).split('T')[0], '%Y-%m-%d').date()
+                t_days = (e_date - s_date).days
+                if t_days > 0:
+                    passed = max(0, min((today - s_date).days, t_days))
+                    u['progress'] = int((passed / t_days) * 100)
+                    u['days_left'] = t_days - passed
+            except: pass
+
+        # Aggregate Donations for this user
+        user_donations = [d for d in donations_data if d.get('user_id') == u.get('id')]
+        u['total_raised'] = sum(float(d.get('amount') or 0) for d in user_donations)
+        total_platform_raised += u['total_raised']
+        
+        # Get Donor Names
+        donor_names = [d.get('donor_name') for d in user_donations if d.get('donor_name')]
+        u['donor_list'] = ", ".join(donor_names) if donor_names else "None"
+
     admins = [u for u in all_users if u.get('role') == 'admin']
     interns = [u for u in all_users if u.get('role') == 'intern']
     ambassadors = [u for u in all_users if u.get('role') == 'ambassador']
     
-    donations_data = []
-    try:
-        donations_data = supabase.table('donations').select('*').execute().data
-    except Exception:
-        pass
-        
-    raised_by_user = {}
-    for d in donations_data:
-        uid = d.get('user_id')
-        amt = float(d.get('amount') or 0)
-        raised_by_user[uid] = raised_by_user.get(uid, 0) + amt
-        
-    for u in all_users:
-        u['total_raised'] = raised_by_user.get(u.get('id'), 0)
-        
     leaderboard = sorted([u for u in all_users if u.get('role') != 'admin'], 
                          key=lambda x: x.get('total_raised', 0), reverse=True)
     
-    tasks = supabase.table('tasks').select('*').execute().data
-    resources = supabase.table('resources').select('*').execute().data
-    
     return render_template('admin_dashboard.html', 
                            admins=admins, interns=interns, ambassadors=ambassadors,
-                           leaderboard=leaderboard, missions=tasks, resources=resources)
+                           leaderboard=leaderboard, missions=tasks, resources=resources,
+                           total_platform_raised=total_platform_raised)
 
 # --- ADMIN USER MANAGEMENT (CRUD) ---
 @app.route('/admin/users/add', methods=['GET', 'POST'])
@@ -213,13 +202,17 @@ def admin_dashboard():
 def add_user():
     if request.method == 'POST':
         try:
-            supabase.table('users').insert({
+            insert_data = {
                 'full_name': request.form.get('full_name'),
                 'username': request.form.get('username'),
                 'email': request.form.get('email'),
                 'password_hash': request.form.get('password'),
                 'role': request.form.get('role')
-            }).execute()
+            }
+            if request.form.get('tenure_start'): insert_data['tenure_start'] = request.form.get('tenure_start')
+            if request.form.get('tenure_end'): insert_data['tenure_end'] = request.form.get('tenure_end')
+
+            supabase.table('users').insert(insert_data).execute()
             flash("User created successfully!", "success")
             return redirect(url_for('admin_dashboard'))
         except Exception as e:
@@ -235,7 +228,9 @@ def edit_user(user_id):
                 'full_name': request.form.get('full_name'),
                 'username': request.form.get('username'),
                 'email': request.form.get('email'),
-                'role': request.form.get('role')
+                'role': request.form.get('role'),
+                'tenure_start': request.form.get('tenure_start') or None,
+                'tenure_end': request.form.get('tenure_end') or None
             }
             
             new_password = request.form.get('new_password')
@@ -246,7 +241,7 @@ def edit_user(user_id):
             flash("User updated successfully!", "success")
             return redirect(url_for('admin_dashboard'))
         except Exception as e:
-            flash("Error updating user. Please try again.", "error")
+            flash(f"Error updating user: {str(e)}", "error")
 
     user_response = supabase.table('users').select('*').eq('id', user_id).execute()
     if not user_response.data:
@@ -259,35 +254,14 @@ def edit_user(user_id):
 @admin_required
 def delete_user(user_id):
     try:
-        try:
-            supabase.table('task_completions').delete().eq('user_id', user_id).execute()
-        except Exception:
-            pass 
-            
-        try:
-            supabase.table('donations').delete().eq('user_id', user_id).execute()
-        except Exception:
-            pass
-
+        try: supabase.table('task_completions').delete().eq('user_id', user_id).execute()
+        except: pass 
+        try: supabase.table('donations').delete().eq('user_id', user_id).execute()
+        except: pass
         supabase.table('users').delete().eq('id', user_id).execute()
         flash("User deleted successfully!", "success")
     except Exception as e:
         flash(f"Database Blocked Deletion: {str(e)}", "error")
-        
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/missions/delete/<int:task_id>')
-@admin_required
-def delete_mission(task_id):
-    supabase.table('tasks').delete().eq('id', task_id).execute()
-    flash("Mission deleted.", "success")
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/resources/delete/<int:resource_id>')
-@admin_required
-def delete_resource(resource_id):
-    supabase.table('resources').delete().eq('id', resource_id).execute()
-    flash("Resource deleted.", "success")
     return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':

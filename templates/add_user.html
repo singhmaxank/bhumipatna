@@ -2,44 +2,56 @@
 {% block title %}Bhumi Patna Portal - Add User{% endblock %}
 
 {% block content %}
-<div style="max-width: 700px; margin: 0 auto;" class="admin-section">
-    <h2 style="margin-bottom: 1.5rem;">Add New User</h2>
+<div class="admin-section" style="max-width: 700px;">
+    <h2>Add New User</h2>
+    <p class="subtext" style="margin-bottom: 2rem;">Create a new profile for an intern, ambassador, or admin.</p>
     
     <form method="POST" action="/admin/users/add">
-        <div class="grid-2" style="gap: 1.5rem; margin-bottom: 0;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             <div class="form-group">
-                <label for="full_name">Full Name</label>
-                <input type="text" id="full_name" name="full_name" required>
+                <label>Full Name</label>
+                <input type="text" name="full_name" required>
             </div>
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <label>Username</label>
+                <input type="text" name="username" required>
             </div>
         </div>
         
         <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" required>
+            <label>Email Address</label>
+            <input type="email" name="email" required>
         </div>
 
-        <div class="grid-2" style="gap: 1.5rem; margin-bottom: 0;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="text" id="password" name="password" required>
+                <label>Password</label>
+                <input type="text" name="password" required>
             </div>
             <div class="form-group">
-                <label for="role">User Role</label>
-                <select id="role" name="role" required>
+                <label>User Role</label>
+                <select name="role" required>
                     <option value="intern">Intern</option>
                     <option value="ambassador">Campus Ambassador</option>
                     <option value="admin">Administrator</option>
                 </select>
             </div>
         </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <div class="form-group">
+                <label>Tenure Start Date (Optional)</label>
+                <input type="date" name="tenure_start">
+            </div>
+            <div class="form-group">
+                <label>Tenure End Date (Optional)</label>
+                <input type="date" name="tenure_end">
+            </div>
+        </div>
         
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn" style="flex: 1;">Create User</button>
-            <a href="/admin" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn">Create User</button>
+            <a href="/admin" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>

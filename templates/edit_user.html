@@ -2,43 +2,55 @@
 {% block title %}Bhumi Patna Portal - Edit User{% endblock %}
 
 {% block content %}
-<div style="max-width: 700px; margin: 0 auto;" class="admin-section">
-    <h2 style="margin-bottom: 1.5rem;">Edit User Profile</h2>
+<div class="admin-section" style="max-width: 700px;">
+    <h2>Edit User Profile</h2>
+    <p class="subtext" style="margin-bottom: 2rem;">Update details for {{ user.full_name }}</p>
     
     <form method="POST" action="/admin/users/edit/{{ user.id }}">
         <div class="form-group">
-            <label for="full_name">Full Name</label>
-            <input type="text" id="full_name" name="full_name" value="{{ user.full_name }}" required>
+            <label>Full Name</label>
+            <input type="text" name="full_name" value="{{ user.full_name }}" required>
         </div>
         
         <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" value="{{ user.username }}" required>
+            <label>Username</label>
+            <input type="text" name="username" value="{{ user.username }}" required>
         </div>
         
         <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+            <label>Email Address</label>
+            <input type="email" name="email" value="{{ user.email }}" required>
         </div>
 
         <div class="form-group">
-            <label for="role">User Role</label>
-            <select id="role" name="role" required>
+            <label>User Role</label>
+            <select name="role" required>
                 <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Administrator</option>
                 <option value="intern" {% if user.role == 'intern' %}selected{% endif %}>Intern</option>
                 <option value="ambassador" {% if user.role == 'ambassador' %}selected{% endif %}>Campus Ambassador</option>
             </select>
         </div>
 
-        <div class="form-group" style="margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
-            <label for="new_password" style="color: var(--accent); font-size: 1rem;">Reset User Password</label>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Leave this blank if you do not want to change their current password.</p>
-            <input type="text" id="new_password" name="new_password" placeholder="Enter a new password">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+            <div class="form-group">
+                <label>Tenure Start Date</label>
+                <input type="date" name="tenure_start" value="{{ user.tenure_start }}">
+            </div>
+            <div class="form-group">
+                <label>Tenure End Date</label>
+                <input type="date" name="tenure_end" value="{{ user.tenure_end }}">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <label style="color: var(--primary);">Reset User Password</label>
+            <p class="subtext" style="margin-bottom: 0.5rem;">Leave blank to keep current password.</p>
+            <input type="text" name="new_password" placeholder="Enter a new password">
         </div>
         
-        <div style="display: flex; gap: 1rem; margin-top: 2.5rem;">
-            <button type="submit" class="btn" style="flex: 1;">Save Changes</button>
-            <a href="/admin" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancel</a>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn">Save Changes</button>
+            <a href="/admin" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>
