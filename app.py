@@ -5,10 +5,6 @@ from supabase import create_client, Client
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "fallback-secret-key-string-12345")
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static', 'img'),
-                               'bhumi_logo.png', mimetype='image/png')
 
 # Supabase Client Initialization Pipeline
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
