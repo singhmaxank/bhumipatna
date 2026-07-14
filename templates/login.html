@@ -1,44 +1,46 @@
-<!-- templates/login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Bhumi</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
 
-<div class="login-page-container">
+<div class="login-container">
     <div class="login-left">
         <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo">
-        <h2>Bhumi Patna</h2>
         <p>Join our movement to catalyze positive change. Together, we empower communities and nurture the environment.</p>
     </div>
     
     <div class="login-right">
         <h2>Log in</h2>
         <form method="POST" action="/login">
-            <input type="text" name="username" class="input-field" placeholder="Username" required>
-            
-            <div class="password-container">
-                <input type="password" name="password" id="passInput" class="input-field" placeholder="Password" required>
-                <span class="toggle-btn" onclick="togglePass()">SHOW</span>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Enter username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" id="passInput" placeholder="Enter password" required>
+                <span class="show-pass" onclick="togglePass()">SHOW</span>
             </div>
             
-            <div class="options">
-                <label><input type="checkbox"> Remember me</label>
+            <div class="actions">
+                <label><input type="checkbox" name="remember"> Remember me</label>
                 <a href="#" onclick="document.getElementById('modal').style.display='flex'">Forgot Password?</a>
             </div>
             
             <button type="submit" class="btn-login">Login</button>
+            <a href="https://www.bhumi.ngo/" target="_blank" class="btn-explore">Explore Bhumi</a>
         </form>
     </div>
 </div>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modal">
     <div class="modal-content">
-        <h3>Reset Password</h3>
+        <h3>Need Help?</h3>
         <p>Please contact your leading head or admin to reset your account password.</p>
         <button class="btn-login" onclick="document.getElementById('modal').style.display='none'">Close</button>
     </div>
@@ -47,7 +49,7 @@
 <script>
     function togglePass() {
         let x = document.getElementById("passInput");
-        let btn = document.querySelector(".toggle-btn");
+        let btn = document.querySelector(".show-pass");
         if (x.type === "password") { x.type = "text"; btn.innerText = "HIDE"; }
         else { x.type = "password"; btn.innerText = "SHOW"; }
     }
