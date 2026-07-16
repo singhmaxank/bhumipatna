@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bhumi Patna Portal</title>
+<script>
+  (function () {
+    var saved = localStorage.getItem('bhumi-theme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}">
+<style>
+  html, body { height: 100%; margin: 0; }
+  .splash-wrap {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+  }
+  .splash-logo {
+    height: 96px;
+    width: auto;
+    animation: splash-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes splash-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.85; }
+  }
+  .splash-bar-track {
+    width: 220px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-top: 28px;
+  }
+  .splash-bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: var(--flame);
+    transition: width 1.4s ease;
+  }
+</style>
+</head>
+<body>
+  <div class="splash-wrap">
+    <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi logo" class="splash-logo">
+    <p class="font-display font-bold mt-5" style="color: var(--ink);">Bhumi Patna Portal</p>
+    <div class="splash-bar-track">
+      <div class="splash-bar-fill" id="splash-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    requestAnimationFrame(function () {
+      document.getElementById('splash-bar').style.width = '100%';
+    });
+    setTimeout(function () {
+      window.location.href = {{ dest|tojson }};
+    }, 1500);
+  </script>
+</body>
+</html>

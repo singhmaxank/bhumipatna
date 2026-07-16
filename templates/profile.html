@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}My Profile &middot; Bhumi Patna Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <div class="flex items-center gap-4 mb-8">
+    <span class="avatar h-14 w-14 text-lg" style="background: {{ user.full_name|avatar_color }};">{{ user.full_name|initials }}</span>
+    <div>
+      <h1 class="font-display font-extrabold text-2xl">{{ user.full_name }}</h1>
+      <p class="text-sm capitalize" style="color: var(--ink-soft);">{{ user.role }}{% if rank_label %} &middot; {{ rank_label }} tier{% endif %}</p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-wide mb-4" style="color: var(--ink-soft);">Account details</h2>
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between gap-4">
+          <dt style="color: var(--ink-soft);">Username</dt>
+          <dd class="font-medium">@{{ user.username }}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt style="color: var(--ink-soft);">Email</dt>
+          <dd class="font-medium">{{ user.email or "—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt style="color: var(--ink-soft);">Phone</dt>
+          <dd class="font-medium">{{ user.phone or "—" }}</dd>
+        </div>
+        {% if user.tenure_start %}
+        <div class="flex justify-between gap-4">
+          <dt style="color: var(--ink-soft);">Tenure start</dt>
+          <dd class="font-medium">{{ user.tenure_start }}</dd>
+        </div>
+        {% endif %}
+        {% if user.tenure_end %}
+        <div class="flex justify-between gap-4">
+          <dt style="color: var(--ink-soft);">Tenure end</dt>
+          <dd class="font-medium">{{ user.tenure_end }}</dd>
+        </div>
+        {% endif %}
+        {% if total is not none %}
+        <div class="flex justify-between gap-4">
+          <dt style="color: var(--ink-soft);">Verified donations</dt>
+          <dd class="font-medium">{{ total|inr }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-wide mb-4" style="color: var(--ink-soft);">Change password</h2>
+      <form method="POST" action="{{ url_for('profile') }}" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">Current password</label>
+          <input type="password" name="current_password" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">New password</label>
+          <input type="password" name="new_password" required minlength="6" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">Confirm new password</label>
+          <input type="password" name="confirm_password" required minlength="6" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm mt-2">Update password</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

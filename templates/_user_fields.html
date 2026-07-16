@@ -1,0 +1,39 @@
+<div>
+  <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Full name</label>
+  <input type="text" name="full_name" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+</div>
+<div>
+  <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Username</label>
+  <input type="text" name="username" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+</div>
+<div>
+  <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Temporary password</label>
+  <input type="text" name="password" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+</div>
+<div class="grid grid-cols-2 gap-3">
+  <div>
+    <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Tenure start</label>
+    <input type="date" name="tenure_start" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+  </div>
+  <div>
+    <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Tenure end</label>
+    <input type="date" name="tenure_end" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+  </div>
+</div>
+<div>
+  <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Email</label>
+  <input type="email" name="email" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+</div>
+<div>
+  <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Phone (optional)</label>
+  <input type="text" name="phone" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+</div>
+<div>
+  <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Managed by (optional)</label>
+  <select name="assigned_admin_id" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+    <option value="">Unassigned</option>
+    {% for a in admins %}
+    <option value="{{ a.id }}">{{ a.full_name }}</option>
+    {% endfor %}
+  </select>
+</div>

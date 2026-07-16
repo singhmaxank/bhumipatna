@@ -1,0 +1,18 @@
+{
+  "name": "Bhumi Patna Portal",
+  "short_name": "Bhumi Patna",
+  "description": "Track fundraising, missions, and campaigns for Bhumi Patna volunteers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f3ee",
+  "theme_color": "#e2872a",
+  "icons": [
+    {
+      "src": "/static/img/bhumi_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

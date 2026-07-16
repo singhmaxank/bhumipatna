@@ -1,126 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bhumi Patna - {% block title %}{% endblock %}</title>
-    
-    <link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}?v=2" type="image/png">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
-    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Bhumi Patna Portal{% endblock %}</title>
+<script>
+  // Apply saved theme before paint to avoid a flash of the wrong theme.
+  (function () {
+    var saved = localStorage.getItem('bhumi-theme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="theme-color" content="#e2872a">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/bhumi_logo.png') }}">
 </head>
-<body>
+<body class="min-h-screen">
 
-<div class="app-container">
-    {% if session.get('user_id') %}
-    <!-- DESKTOP SIDEBAR -->
-    <aside class="sidebar">
-        <a href="/" class="sidebar-brand">
-            <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Logo">
-            Bhumi Patna
+<div id="toast-container"></div>
+
+{% if session.get('user_id') %}
+<header class="nav-bar sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="{{ url_for('dashboard') if session.get('role') != 'admin' else url_for('admin_panel') }}" class="flex items-center gap-3">
+        <img src="{{ url_for('static', filename='img/bhumi_logo.png') }}" alt="Bhumi logo" class="h-9 w-auto">
+        <p class="font-display font-bold text-[15px]">Bhumi Patna Portal</p>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="notif-toggle" type="button" class="icon-btn h-9 w-9" aria-label="Enable notifications" title="Enable notifications">
+          <svg id="icon-bell-off" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+          <svg id="icon-bell-on" class="h-4 w-4 hidden" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button id="theme-toggle" type="button" class="icon-btn h-9 w-9" aria-label="Toggle dark mode">
+          <svg id="icon-sun" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg id="icon-moon" class="h-4 w-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <a href="{{ url_for('profile') }}" class="hidden sm:flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border" style="border-color: var(--border);">
+          <span class="avatar h-7 w-7 text-[11px]" style="background: {{ session.get('full_name')|avatar_color }};">{{ session.get('full_name')|initials }}</span>
+          <span class="text-sm font-medium">{{ session.get('full_name') }}</span>
         </a>
-        <nav class="nav-menu">
-            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; padding-left: 10px;">MENU</div>
-            
-            {% if session.get('role') == 'admin' %}
-                <a href="/admin" class="nav-item {% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i> Dashboard</a>
-                <a href="/admin/verify" class="nav-item {% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i> Verify Donations</a>
-                <a href="/admin/users/add" class="nav-item {% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i> Manage Users</a>
-                <a href="/admin/export" class="nav-item"><i class="ph ph-file-pdf"></i> Export Data (PDF)</a>
-            {% else %}
-                <a href="/dashboard" class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard</a>
-            {% endif %}
-        </nav>
-        <div class="nav-bottom nav-menu">
-            <a href="/logout" class="nav-item"><i class="ph ph-sign-out"></i> Logout</a>
-        </div>
-    </aside>
+        <a href="{{ url_for('profile') }}" class="sm:hidden icon-btn h-9 w-9" aria-label="My profile">
+          <span class="avatar h-6 w-6 text-[10px]" style="background: {{ session.get('full_name')|avatar_color }};">{{ session.get('full_name')|initials }}</span>
+        </a>
+        <a href="{{ url_for('logout') }}" class="text-sm px-3 py-1.5 rounded-md border" style="border-color: var(--border); color: var(--ink-soft);">Log out</a>
+      </div>
+    </div>
+  </div>
+</header>
+{% else %}
+<button id="theme-toggle" type="button" class="icon-btn h-9 w-9 fixed top-4 right-4 z-40" aria-label="Toggle dark mode">
+  <svg id="icon-sun" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  <svg id="icon-moon" class="h-4 w-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+{% endif %}
 
-    <!-- MOBILE BOTTOM NAV -->
-    <nav class="mobile-nav">
-        {% if session.get('role') == 'admin' %}
-            <a href="/admin" class="{% if request.path == '/admin' %}active{% endif %}"><i class="ph ph-squares-four"></i><span>Home</span></a>
-            <a href="/admin/verify" class="{% if request.path == '/admin/verify' %}active{% endif %}"><i class="ph ph-check-circle"></i><span>Verify</span></a>
-            <a href="/admin/users/add" class="{% if request.path == '/admin/users/add' %}active{% endif %}"><i class="ph ph-user-plus"></i><span>Users</span></a>
-        {% else %}
-            <a href="/dashboard" class="active"><i class="ph ph-squares-four"></i><span>Home</span></a>
-        {% endif %}
-        <a href="/logout"><i class="ph ph-sign-out"></i><span>Logout</span></a>
-    </nav>
-    {% endif %}
-
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-        {% if session.get('user_id') %}
-        <header class="header">
-            <div class="header-title">
-                <h1>{% block page_name %}{% endblock %}</h1>
-            </div>
-            <div class="header-actions">
-                <div class="search-bar">
-                    <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="globalSearch" placeholder="Search records..." onkeyup="searchTables()">
-                </div>
-                <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme"><i class="ph ph-moon" id="themeIcon"></i></button>
-            </div>
-        </header>
-        {% endif %}
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div style="padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600; font-size: 0.9rem; background: {% if category=='error' %}#fee2e2; color: #ef4444;{% else %}#d1fae5; color: #059669;{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        {% block content %}{% endblock %}
-    </main>
+{# Flashed messages are rendered as toasts via JS below, not inline, for a more modern feel #}
+<div id="flash-data" class="hidden">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <span data-category="{{ category }}">{{ message }}</span>
+    {% endfor %}
+  {% endwith %}
 </div>
 
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer class="mt-16 py-6 border-t" style="border-color: var(--border);">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <p class="text-xs text-center sm:text-left order-2 sm:order-1" style="color: var(--ink-soft);">
+      &copy; {{ now.year if now else '2026' }} Bhumi Patna &mdash; Change doesn't wait, &amp; neither should you!
+    </p>
+    <div class="flex flex-wrap gap-x-5 gap-y-2 text-xs justify-center sm:justify-end order-1 sm:order-2" style="color: var(--ink-soft);">
+      <a href="https://www.bhumi.ngo" target="_blank" rel="noopener" class="hover:underline">Homepage</a>
+      <a href="https://www.bhumi.ngo/about-us/terms-of-service" target="_blank" rel="noopener" class="hover:underline">Terms of Service</a>
+      <a href="https://www.bhumi.ngo/about-us/privacy-policy" target="_blank" rel="noopener" class="hover:underline">Privacy Policy</a>
+      <a href="https://www.bhumi.ngo/about-us/legal" target="_blank" rel="noopener" class="hover:underline">Legal</a>
+      <a href="https://www.bhumi.ngo/bhumi-care" target="_blank" rel="noopener" class="hover:underline">Bhumi Care</a>
+    </div>
+  </div>
+</footer>
+
 <script>
-    function toggleTheme() {
-        const doc = document.documentElement;
-        const newTheme = doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        doc.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        document.getElementById('themeIcon').className = newTheme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
-        
-        if (typeof Chart !== 'undefined') {
-            Chart.helpers.each(Chart.instances, function(instance){
-                instance.options.scales.x.ticks.color = newTheme === 'dark' ? '#9ca3af' : '#6b7280';
-                instance.options.scales.y.ticks.color = newTheme === 'dark' ? '#9ca3af' : '#6b7280';
-                instance.update();
-            });
-        }
+  // Dark mode toggle
+  (function () {
+    var root = document.documentElement;
+    var toggle = document.getElementById('theme-toggle');
+    var sun = document.getElementById('icon-sun');
+    var moon = document.getElementById('icon-moon');
+
+    function syncIcons() {
+      var isDark = root.getAttribute('data-theme') === 'dark';
+      sun.classList.toggle('hidden', isDark);
+      moon.classList.toggle('hidden', !isDark);
     }
-    if (document.getElementById('themeIcon')) {
-        document.getElementById('themeIcon').className = localStorage.getItem('theme') === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
+    syncIcons();
+
+    toggle.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('bhumi-theme', next);
+      syncIcons();
+    });
+  })();
+
+  // Toasts: convert flashed messages into auto-dismissing toasts
+  (function () {
+    var container = document.getElementById('toast-container');
+    var items = document.querySelectorAll('#flash-data span');
+    items.forEach(function (el, i) {
+      setTimeout(function () {
+        var toast = document.createElement('div');
+        var category = el.dataset.category === 'error' ? 'toast-error' : 'toast-success';
+        toast.className = 'toast ' + category;
+        toast.textContent = el.textContent;
+        container.appendChild(toast);
+        setTimeout(function () {
+          toast.classList.add('toast-out');
+          setTimeout(function () { toast.remove(); }, 250);
+        }, 4500);
+      }, i * 150);
+    });
+  })();
+
+  // Web Push notifications: register the service worker and let the user
+  // opt in via the bell icon. Only relevant once logged in.
+  {% if session.get('user_id') %}
+  (function () {
+    var bellBtn = document.getElementById('notif-toggle');
+    var bellOn = document.getElementById('icon-bell-on');
+    var bellOff = document.getElementById('icon-bell-off');
+    var VAPID_PUBLIC_KEY = {{ vapid_public_key|tojson }};
+
+    if (!bellBtn || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+      if (bellBtn) bellBtn.style.display = 'none';
+      return;
     }
 
-    function searchTables() {
-        let input = document.getElementById("globalSearch").value.toLowerCase();
-        let tables = document.querySelectorAll("table");
-        tables.forEach(table => {
-            let rows = table.getElementsByTagName("tr");
-            for (let i = 1; i < rows.length; i++) {
-                let cells = rows[i].getElementsByTagName("td");
-                let match = false;
-                for (let j = 0; j < cells.length; j++) {
-                    if (cells[j] && cells[j].innerText.toLowerCase().indexOf(input) > -1) { match = true; break; }
-                }
-                rows[i].style.display = match ? "" : "none";
-            }
-        });
+    function urlBase64ToUint8Array(base64String) {
+      var padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+      var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      var rawData = window.atob(base64);
+      var outputArray = new Uint8Array(rawData.length);
+      for (var i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+      return outputArray;
     }
+
+    function syncBellIcon(subscribed) {
+      bellOn.classList.toggle('hidden', !subscribed);
+      bellOff.classList.toggle('hidden', subscribed);
+      bellBtn.title = subscribed ? 'Notifications enabled' : 'Enable notifications';
+    }
+
+    navigator.serviceWorker.register('/sw.js').then(function (registration) {
+      registration.pushManager.getSubscription().then(function (sub) {
+        syncBellIcon(!!sub);
+      });
+
+      bellBtn.addEventListener('click', function () {
+        registration.pushManager.getSubscription().then(function (existingSub) {
+          if (existingSub) {
+            existingSub.unsubscribe().then(function () {
+              fetch('/push/unsubscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endpoint: existingSub.endpoint }),
+              });
+              syncBellIcon(false);
+            });
+            return;
+          }
+
+          Notification.requestPermission().then(function (permission) {
+            if (permission !== 'granted') return;
+            registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            }).then(function (sub) {
+              fetch('/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sub.toJSON()),
+              }).then(function () { syncBellIcon(true); });
+            }).catch(function (err) {
+              console.warn('Push subscription failed:', err);
+            });
+          });
+        });
+      });
+    }).catch(function (err) {
+      console.warn('Service worker registration failed:', err);
+      bellBtn.style.display = 'none';
+    });
+  })();
+  {% endif %}
 </script>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>

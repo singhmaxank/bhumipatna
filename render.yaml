@@ -1,16 +1,12 @@
 services:
   - type: web
-    name: bhumi-portal
+    name: bhumi-patna-portal
     runtime: python
-    plan: starter          # persistent disks require a paid plan (free plan has no disk support)
+    plan: free               # free plan works fine now — no persistent disk is needed since data lives in Supabase
     buildCommand: "pip install --upgrade pip && pip install -r requirements.txt && python init_db.py --if-missing"
     startCommand: "python -m gunicorn app:app --bind 0.0.0.0:$PORT"
     envVars:
       - key: BHUMI_SECRET_KEY
         generateValue: true
-      - key: DATABASE_PATH
-        value: /var/data/bhumi.db
-    disk:
-      name: bhumi-data
-      mountPath: /var/data
-      sizeGB: 1
+      - key: DATABASE_URL
+        sync: false           # paste your Supabase connection string in the Render dashboard after deploy

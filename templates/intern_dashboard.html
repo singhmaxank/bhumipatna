@@ -1,101 +1,318 @@
-{% extends 'base.html' %}
-{% block title %}Dashboard{% endblock %}
-{% block page_name %}My Dashboard{% endblock %}
+{% extends "base.html" %}
+{% block title %}Dashboard &middot; Bhumi Patna Portal{% endblock %}
 
 {% block content %}
-<div class="grid">
-    
-    <!-- Workspace Performance Snapshot -->
-    <div class="card col-6 card-gradient">
-        <div class="card-header"><span class="card-title">Total Raised</span><i class="ph ph-shield-check" style="font-size: 1.3rem;"></i></div>
-        <div class="stat-value">₹{{ total_donated }}</div>
-        <div class="stat-label">Reporting Head: {{ head_name }}</div>
+
+<!-- Hero: countdown + rank -->
+<section class="hero-panel">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid md:grid-cols-3 gap-6">
+
+    <div class="md:col-span-2">
+      <h1 class="font-display font-extrabold text-2xl">Hi {{ user.full_name.split(' ')[0] }}</h1>
+      <p class="text-sm mt-1" style="color: var(--ink-soft);">Here's where things stand with your tenure.</p>
+
+      {% if user.tenure_end %}
+      <div id="countdown" data-end="{{ user.tenure_end }}" class="mt-5 grid grid-cols-4 gap-2 sm:gap-4 max-w-md">
+        <div class="card card-hover px-2 py-3 text-center">
+          <p id="cd-days" class="font-display font-extrabold text-2xl sm:text-3xl">--</p>
+          <p class="text-[10px] uppercase" style="color: var(--ink-soft);">Days</p>
+        </div>
+        <div class="card card-hover px-2 py-3 text-center">
+          <p id="cd-hours" class="font-display font-extrabold text-2xl sm:text-3xl">--</p>
+          <p class="text-[10px] uppercase" style="color: var(--ink-soft);">Hours</p>
+        </div>
+        <div class="card card-hover px-2 py-3 text-center">
+          <p id="cd-mins" class="font-display font-extrabold text-2xl sm:text-3xl">--</p>
+          <p class="text-[10px] uppercase" style="color: var(--ink-soft);">Mins</p>
+        </div>
+        <div class="card card-hover px-2 py-3 text-center">
+          <p id="cd-secs" class="font-display font-extrabold text-2xl sm:text-3xl">--</p>
+          <p class="text-[10px] uppercase" style="color: var(--ink-soft);">Secs</p>
+        </div>
+      </div>
+      <p id="cd-ended" class="mt-4 text-sm hidden" style="color: var(--accent-dark);">Your current tenure window has ended. Reach out to your coordinator about renewal.</p>
+      <p class="text-xs mt-3" style="color: var(--ink-soft);">Tenure ends {{ user.tenure_end }}</p>
+      {% else %}
+      <p class="mt-5 text-sm" style="color: var(--ink-soft);">No tenure end-date has been set for your account yet.</p>
+      {% endif %}
     </div>
 
-    <div class="card col-6" style="flex-direction: row; align-items: center; justify-content: space-between;">
+    <div class="card overflow-hidden">
+      <div class="flame-bar"></div>
+      <div class="p-5">
+        <p class="text-xs font-medium" style="color: var(--ink-soft);">Your rank</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="badge badge-{{ rank_label.lower() }} text-sm">{{ rank_label }}</span>
+          <span class="font-display font-bold">{{ total|inr }}</span>
+        </div>
+        <div class="progress-track mt-4">
+          <div class="progress-fill" style="width: {{ progress }}%;"></div>
+        </div>
+        {% if next_floor %}
+        <p class="text-xs mt-2" style="color: var(--ink-soft);">
+          {{ (next_floor - total)|inr }} more in verified donations to reach the next tier.
+        </p>
+        {% else %}
+        <p class="text-xs mt-2" style="color: var(--ink-soft);">You've reached the top tier &mdash; incredible work!</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+  {% if announcements %}
+  <div class="mt-6 space-y-3">
+    {% for a in announcements %}
+    <div class="announcement-card p-4 flex items-start gap-3">
+      <svg class="h-5 w-5 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="var(--accent-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div>
+        <p class="font-semibold text-sm">{{ a.title }}</p>
+        <p class="text-sm mt-0.5" style="color: var(--ink-soft);">{{ a.message }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Tabs -->
+  <nav class="tab-scroll flex gap-6 border-b mt-6 overflow-x-auto" style="border-color: var(--border);">
+    <button class="tab-btn active py-3 px-1 whitespace-nowrap" data-tab="donations">Donations</button>
+    <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="campaigns">Campaign Goals</button>
+    <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="missions">Missions</button>
+    <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="resources">Resource Library</button>
+    <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="leaderboard">Leaderboard</button>
+  </nav>
+
+  <!-- Donations tab -->
+  <div id="tab-donations" class="tab-panel py-8 grid lg:grid-cols-5 gap-6">
+    <div class="lg:col-span-2">
+      <h2 class="font-display font-bold text-lg">Log a new donation</h2>
+      <form method="POST" action="{{ url_for('submit_donation') }}" class="card p-5 mt-4 space-y-4">
         <div>
-            <div class="card-title">Tenure Progress</div>
-            <div class="stat-value" style="font-size: 2.2rem; margin: 2px 0;">{{ progress_percent }}%</div>
-            <div class="stat-label">{{ days_left }} Days Remaining</div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">Name</label>
+          <input type="text" name="donor_name" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);" placeholder="Rakesh Gupta">
         </div>
-        <div style="width: 100px; height: 100px;">
-            <canvas id="progChart"></canvas>
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">Phone Number</label>
+          <input type="tel" name="donor_phone" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);" placeholder="98765 43210">
         </div>
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">Amount (INR)</label>
+          <input type="number" name="amount" min="1" step="1" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);" placeholder="2500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">Screenshot Link (Google Drive)</label>
+          <input type="url" name="drive_link" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);" placeholder="https://drive.google.com/...">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">UTR/Transaction ID</label>
+          <input type="text" name="utr_reference" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);" placeholder="e.g. 402614792638">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1.5" style="color: var(--ink-soft);">Campaign (optional)</label>
+          <select name="campaign_id" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            <option value="">Not tied to a campaign</option>
+            {% for c in campaigns %}
+            <option value="{{ c.id }}">{{ c.title }}</option>
+            {% endfor %}
+          </select>
+          <p class="text-xs mt-1" style="color: var(--ink-soft);">Tag this donation to a campaign and it'll count toward that goal's progress bar.</p>
+        </div>
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Submit for verification</button>
+      </form>
     </div>
 
-    <!-- Data Logger -->
-    <div class="card col-4">
-        <h3 class="card-title" style="margin-bottom: 20px; color: var(--text-dark); font-size: 0.95rem;">Log New Donation</h3>
-        <form action="/submit-donation" method="POST">
-            <div class="form-group">
-                <label>Donor Name</label>
-                <input type="text" name="donor_name" class="form-control" placeholder="e.g. John Doe" required>
+    <div class="lg:col-span-3">
+      <h2 class="font-display font-bold text-lg">Your donation ledger</h2>
+      <div class="card mt-4 divide-y" style="border-color: var(--border);">
+        {% if my_donations %}
+          {% for d in my_donations %}
+          <div class="card-row px-5 py-4 flex items-start justify-between gap-4">
+            <div>
+              <p class="font-medium text-sm">{{ d.donor_name }}</p>
+              <p class="font-display font-bold text-lg mt-0.5">{{ d.amount|inr }}</p>
+              <p class="text-xs mt-1" style="color: var(--ink-soft);">
+                {% if d.donor_phone %}{{ d.donor_phone }} &middot; {% endif %}{% if d.utr_reference %}UTR: {{ d.utr_reference }}{% endif %}
+              </p>
+              {% if d.campaign_title %}
+              <p class="text-[10px] uppercase font-semibold mt-1" style="color: var(--accent);">{{ d.campaign_title }}</p>
+              {% endif %}
+              <p class="text-xs mt-1" style="color: var(--ink-soft);">Submitted {{ d.submitted_at }}</p>
+              {% if d.status == 'rejected' and d.admin_note %}
+              <p class="text-xs mt-2 px-2.5 py-1.5 rounded" style="background: var(--danger-soft); color: var(--danger);">
+                Admin note: {{ d.admin_note }}
+              </p>
+              {% endif %}
             </div>
-            <div class="form-group">
-                <label>Donor Phone</label>
-                <input type="tel" name="donor_phone" class="form-control" placeholder="Phone number" required>
-            </div>
-            <div style="display: flex; gap: 16px;">
-                <div class="form-group">
-                    <label>Amount (₹)</label>
-                    <input type="number" name="amount" class="form-control" placeholder="500" required>
-                </div>
-                <div class="form-group">
-                    <label>UTR Number</label>
-                    <input type="text" name="utr" class="form-control" placeholder="Transaction ID" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Payment Proof (Google Drive Link)</label>
-                <input type="url" name="screenshot_url" class="form-control" placeholder="https://drive.google.com/file/d/..." required>
-            </div>
-            
-            <button type="submit" class="btn-main" style="margin-top: 5px;">Submit Record</button>
+            <span class="badge badge-{{ d.status }} shrink-0">{{ d.status }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No donations logged yet &mdash; submit your first one!</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Campaign Goals tab -->
+  <div id="tab-campaigns" class="tab-panel py-8" style="display:none;">
+    <h2 class="font-display font-bold text-lg">Campaign goals</h2>
+    <div class="grid sm:grid-cols-2 gap-4 mt-4">
+      {% for c in campaigns %}
+      <div class="card overflow-hidden">
+        <div class="flame-bar"></div>
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="font-display font-bold text-sm">{{ c.title }}</h3>
+            {% if c.is_active %}<span class="badge badge-approved shrink-0">Active</span>{% endif %}
+          </div>
+          {% if c.start_date or c.end_date %}
+          <p class="text-xs mt-1" style="color: var(--ink-soft);">{{ c.start_date or "—" }} to {{ c.end_date or "ongoing" }}</p>
+          {% endif %}
+          <div class="flex items-center justify-between mt-4 text-sm">
+            <span class="font-display font-bold">{{ c.raised|inr }}</span>
+            <span style="color: var(--ink-soft);">of {{ c.target_amount|inr }}</span>
+          </div>
+          <div class="progress-track mt-2">
+            <div class="progress-fill" style="width: {{ c.progress_pct }}%;"></div>
+          </div>
+          <p class="text-xs mt-2" style="color: var(--ink-soft);">{{ "%.0f"|format(c.progress_pct) }}% of goal reached</p>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-sm" style="color: var(--ink-soft);">No campaign goals have been set yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Missions tab -->
+  <div id="tab-missions" class="tab-panel py-8" style="display:none;">
+    <h2 class="font-display font-bold text-lg">Active missions</h2>
+    <div class="grid sm:grid-cols-2 gap-4 mt-4">
+      {% for t in tasks %}
+      <div class="card card-hover p-5 flex flex-col">
+        <div class="flex items-start justify-between gap-3">
+          <h3 class="font-medium text-sm">{{ t.title }}</h3>
+          {% if t.id in completed_task_ids %}
+          <span class="badge badge-approved shrink-0">Done</span>
+          {% elif t.deadline and t.deadline < now.date() %}
+          <span class="badge badge-overdue shrink-0">Overdue</span>
+          {% endif %}
+        </div>
+        <p class="text-sm mt-2 flex-1" style="color: var(--ink-soft);">{{ t.description }}</p>
+        {% if t.deadline %}
+        <p class="text-xs mt-3" style="color: var(--ink-soft);">Due {{ t.deadline }}</p>
+        {% endif %}
+        {% if t.id not in completed_task_ids %}
+        <form method="POST" action="{{ url_for('complete_task', task_id=t.id) }}" class="mt-4">
+          <button type="submit" class="btn-primary w-full py-2 rounded-md text-sm">Mark complete</button>
         </form>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="text-sm" style="color: var(--ink-soft);">No missions have been published yet.</p>
+      {% endfor %}
     </div>
+  </div>
 
-    <!-- Personal History Table -->
-    <div class="card col-8">
-        <div class="card-header"><h3 class="card-title" style="font-size: 0.95rem; color: var(--text-dark);">My Donations History</h3></div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Donor Details</th>
-                        <th>Amount</th>
-                        <th>UTR</th>
-                        <th style="text-align: right;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for d in my_donations %}
-                    <tr>
-                        <td>
-                            <div style="font-weight: 700; color: var(--text-dark);">{{ d.donor_name }}</div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ d.donor_phone }}</div>
-                        </td>
-                        <td style="color: var(--text-dark); font-weight: 700;">₹{{ d.amount }}</td>
-                        <td style="font-family: monospace; color: var(--text-muted); font-size: 0.85rem;">{{ d.utr }}</td>
-                        <td style="text-align: right;"><span class="badge badge-{{ d.status }}">{{ d.status }}</span></td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.9rem;">No donations logged yet.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  <!-- Resources tab -->
+  <div id="tab-resources" class="tab-panel py-8" style="display:none;">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <h2 class="font-display font-bold text-lg">Resource library</h2>
+      <input id="resource-search" type="search" placeholder="Search resources…" class="px-3 py-2 rounded-md border text-sm w-full sm:w-64" style="border-color: var(--border);">
     </div>
+    <div id="resource-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+      {% for r in resources %}
+      <a href="{{ r.link }}" target="_blank" rel="noopener" class="resource-item card card-hover p-5 block" data-search="{{ (r.title ~ ' ' ~ r.category)|lower }}">
+        <p class="text-[10px] uppercase font-semibold" style="color: var(--accent);">{{ r.category }}</p>
+        <p class="font-medium text-sm mt-1.5">{{ r.title }}</p>
+        <p class="text-xs mt-3" style="color: var(--ink-soft);">Open in Google Drive &rarr;</p>
+      </a>
+      {% else %}
+      <p class="text-sm" style="color: var(--ink-soft);">No resources have been added yet.</p>
+      {% endfor %}
+    </div>
+    <p id="resource-empty" class="text-sm mt-4 hidden" style="color: var(--ink-soft);">No resources match your search.</p>
+  </div>
+
+  <!-- Leaderboard tab -->
+  <div id="tab-leaderboard" class="tab-panel py-8" style="display:none;">
+    <h2 class="font-display font-bold text-lg">Top 5 volunteers, org-wide</h2>
+    <div class="card mt-4 divide-y max-w-2xl" style="border-color: var(--border);">
+      {% for row in leaderboard %}
+      <div class="card-row px-5 py-4 flex items-center gap-4">
+        <span class="font-display font-extrabold text-lg w-6 text-center" style="color: var(--accent);">{{ loop.index }}</span>
+        <span class="avatar h-9 w-9 text-xs" style="background: {{ row.full_name|avatar_color }};">{{ row.full_name|initials }}</span>
+        <div class="flex-1">
+          <p class="font-medium text-sm">{{ row.full_name }}</p>
+          <p class="text-xs capitalize" style="color: var(--ink-soft);">{{ row.role }}</p>
+        </div>
+        <span class="font-display font-bold">{{ row.total|inr }}</span>
+      </div>
+      {% else %}
+      <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No verified donations yet.</p>
+      {% endfor %}
+    </div>
+  </div>
 
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        new Chart(document.getElementById('progChart').getContext('2d'), {
-            type: 'doughnut',
-            data: { labels: ['Done', 'Pending'], datasets: [{ data: [{{ progress_percent }}, 100 - {{ progress_percent }}], backgroundColor: ['#059669', 'rgba(0,0,0,0.04)'], borderWidth: 0, cutout: '82%' }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
-        });
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).style.display = '';
     });
+  });
+
+  // Live tenure countdown
+  const cd = document.getElementById('countdown');
+  if (cd) {
+    const endDate = new Date(cd.dataset.end + 'T23:59:59');
+    const tick = () => {
+      const diff = endDate - new Date();
+      if (diff <= 0) {
+        document.getElementById('cd-days').textContent = '0';
+        document.getElementById('cd-hours').textContent = '0';
+        document.getElementById('cd-mins').textContent = '0';
+        document.getElementById('cd-secs').textContent = '0';
+        document.getElementById('cd-ended').classList.remove('hidden');
+        clearInterval(timer);
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+      document.getElementById('cd-days').textContent = days;
+      document.getElementById('cd-hours').textContent = hours;
+      document.getElementById('cd-mins').textContent = mins;
+      document.getElementById('cd-secs').textContent = secs;
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+  }
+
+  // Resource search filter
+  const searchInput = document.getElementById('resource-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      let visibleCount = 0;
+      document.querySelectorAll('.resource-item').forEach(item => {
+        const match = item.dataset.search.includes(q);
+        item.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
+      });
+      document.getElementById('resource-empty').classList.toggle('hidden', visibleCount !== 0);
+    });
+  }
 </script>
 {% endblock %}

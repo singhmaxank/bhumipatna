@@ -1,118 +1,605 @@
-{% extends 'base.html' %}
-{% block title %}Admin Dashboard{% endblock %}
-{% block page_name %}Dashboard{% endblock %}
+{% extends "base.html" %}
+{% block title %}Admin &middot; Bhumi Patna Portal{% endblock %}
 
 {% block content %}
-<div class="grid">
-    
-    <!-- Mini Metric Blocks -->
-    <div class="card col-3 card-gradient">
-        <div class="card-header"><span class="card-title">Total Raised</span><i class="ph ph-wallet" style="font-size: 1.2rem;"></i></div>
-        <div class="stat-value">₹{{ total_platform_raised }}</div>
-        <div class="stat-label">Total Approved Funds</div>
+
+<section class="hero-panel">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="font-display font-extrabold text-2xl">Admin Panel</h1>
+    <p class="text-sm mt-1" style="color: var(--ink-soft);">Financial verification &amp; oversight</p>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6">
+      <div class="card card-hover p-4">
+        <p class="text-xs" style="color: var(--ink-soft);">Pending review</p>
+        <p class="font-display font-extrabold text-2xl mt-1">{{ stats.pending_count }}</p>
+      </div>
+      <div class="card card-hover p-4">
+        <p class="text-xs" style="color: var(--ink-soft);">Approved</p>
+        <p class="font-display font-extrabold text-2xl mt-1">{{ stats.approved_count }}</p>
+      </div>
+      <div class="card card-hover p-4">
+        <p class="text-xs" style="color: var(--ink-soft);">Rejected</p>
+        <p class="font-display font-extrabold text-2xl mt-1">{{ stats.rejected_count }}</p>
+      </div>
+      <div class="card card-hover p-4 overflow-hidden relative">
+        <div class="flame-bar absolute top-0 left-0 right-0"></div>
+        <p class="text-xs" style="color: var(--ink-soft);">Verified total</p>
+        <p class="font-display font-extrabold text-2xl mt-1">{{ stats.verified_total|inr }}</p>
+      </div>
     </div>
-    
-    <div class="card col-3">
-        <div class="card-header"><span class="card-title">Interns</span><i class="ph ph-users" style="font-size: 1.2rem;"></i></div>
-        <div class="stat-value">{{ interns|length }}</div>
-        <div class="stat-label">Active Interns</div>
+  </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="flex items-center justify-between mt-6 flex-wrap gap-3">
+    <nav class="tab-scroll flex gap-5 border-b overflow-x-auto flex-1" style="border-color: var(--border);">
+      <button class="tab-btn active py-3 px-1 whitespace-nowrap" data-tab="verify">Verification Hub</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="interns">Interns</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="ambassadors">Campus Ambassadors</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="admins">Admins</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="missions">Missions</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="resources">Resources</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="campaigns">Campaign Goals</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="announcements">Announcements</button>
+      <button class="tab-btn py-3 px-1 whitespace-nowrap" data-tab="leaderboard">Leaderboard</button>
+    </nav>
+    <div class="relative shrink-0">
+      <button type="button" onclick="document.getElementById('pdf-export-form').classList.toggle('hidden')" class="btn-primary px-4 py-2 rounded-md text-sm whitespace-nowrap">Export PDF</button>
+      <form id="pdf-export-form" method="GET" action="{{ url_for('export_pdf') }}" class="hidden card p-4 absolute right-0 mt-2 z-30 w-72 space-y-3">
+        <p class="text-xs font-medium" style="color: var(--ink-soft);">Optional date range (leave blank for all-time)</p>
+        <div>
+          <label class="block text-xs mb-1" style="color: var(--ink-soft);">Start date</label>
+          <input type="date" name="start_date" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs mb-1" style="color: var(--ink-soft);">End date</label>
+          <input type="date" name="end_date" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <button type="submit" class="btn-primary w-full py-2 rounded-md text-sm">Download PDF</button>
+      </form>
     </div>
-    
-    <div class="card col-3">
-        <div class="card-header"><span class="card-title">Ambassadors</span><i class="ph ph-student" style="font-size: 1.2rem;"></i></div>
-        <div class="stat-value">{{ ambassadors|length }}</div>
-        <div class="stat-label">Active Ambassadors</div>
+  </div>
+
+  <!-- ===================== Verification hub ===================== -->
+  <div id="tab-verify" class="tab-panel py-8">
+    <div class="flex items-center gap-3 flex-wrap mb-4">
+      <input id="donation-search" type="search" placeholder="Search by donor or volunteer…" class="px-3 py-2 rounded-md border text-sm flex-1 min-w-[200px]" style="border-color: var(--border);">
+      <div class="flex gap-1.5" id="status-filter">
+        <button type="button" data-status="all" class="status-filter-btn btn-outline px-3 py-1.5 rounded-md text-xs active-filter">All</button>
+        <button type="button" data-status="pending" class="status-filter-btn btn-outline px-3 py-1.5 rounded-md text-xs">Pending</button>
+        <button type="button" data-status="approved" class="status-filter-btn btn-outline px-3 py-1.5 rounded-md text-xs">Approved</button>
+        <button type="button" data-status="rejected" class="status-filter-btn btn-outline px-3 py-1.5 rounded-md text-xs">Rejected</button>
+      </div>
     </div>
-    
-    <div class="card col-3">
-        <div class="card-header"><span class="card-title">Top Performer</span><i class="ph ph-trophy" style="font-size: 1.2rem;"></i></div>
-        {% if leaderboard %}
-            <div class="stat-value" style="font-size: 1.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ leaderboard[0].full_name }}</div>
-            <div class="stat-label" style="color: var(--primary); font-weight: 700;">₹{{ leaderboard[0].total_raised }} Raised</div>
+    <div id="donations-list" class="card divide-y" style="border-color: var(--border);">
+      {% for d in donations %}
+      <div class="card-row donation-row px-5 py-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4"
+           data-search="{{ (d.donor_name ~ ' ' ~ d.full_name)|lower }}" data-status="{{ d.status }}">
+        <div class="flex gap-3">
+          <span class="avatar h-9 w-9 text-xs shrink-0" style="background: {{ d.full_name|avatar_color }};">{{ d.full_name|initials }}</span>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="font-medium text-sm">{{ d.donor_name }}</p>
+              <span class="text-xs" style="color: var(--ink-soft);">via {{ d.full_name }} ({{ d.role }})</span>
+            </div>
+            <p class="font-display font-bold text-lg mt-0.5">{{ d.amount|inr }}</p>
+            <p class="text-xs mt-1" style="color: var(--ink-soft);">
+              {% if d.donor_phone %}{{ d.donor_phone }} &middot; {% endif %}{% if d.utr_reference %}UTR: {{ d.utr_reference }}{% endif %}
+            </p>
+            <a href="{{ d.drive_link }}" target="_blank" rel="noopener" class="text-xs underline mt-1 inline-block" style="color: var(--accent);">View verification screenshot &rarr;</a>
+            <p class="text-xs mt-1" style="color: var(--ink-soft);">Submitted {{ d.submitted_at }}</p>
+            {% if d.status == 'rejected' and d.admin_note %}
+            <p class="text-xs mt-2 px-2.5 py-1.5 rounded inline-block" style="background: var(--danger-soft); color: var(--danger);">Note: {{ d.admin_note }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="flex flex-col items-start sm:items-end gap-2 shrink-0">
+          <span class="badge badge-{{ d.status }}">{{ d.status }}</span>
+          {% if d.status == 'pending' %}
+          <div class="flex gap-2 mt-1">
+            <form method="POST" action="{{ url_for('review_donation', donation_id=d.id) }}">
+              <input type="hidden" name="decision" value="approved">
+              <button type="submit" class="btn-primary px-3 py-1.5 rounded-md text-xs">Approve</button>
+            </form>
+            <button type="button" onclick="document.getElementById('reject-{{ d.id }}').classList.toggle('hidden')" class="btn-danger-outline px-3 py-1.5 rounded-md text-xs">Reject</button>
+          </div>
+          <form id="reject-{{ d.id }}" method="POST" action="{{ url_for('review_donation', donation_id=d.id) }}" class="hidden w-full sm:w-64 mt-2 space-y-2">
+            <input type="hidden" name="decision" value="rejected">
+            <textarea name="admin_note" rows="2" placeholder="e.g. Blurry image link" required class="w-full text-xs px-2.5 py-2 rounded-md border" style="border-color: var(--border);"></textarea>
+            <button type="submit" class="w-full btn-danger-outline py-1.5 rounded-md text-xs">Confirm rejection</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <p class="px-5 py-10 text-sm text-center" style="color: var(--ink-soft);">No donations submitted yet.</p>
+      {% endfor %}
+    </div>
+    <div id="donations-pagination" class="flex items-center justify-between mt-4 text-xs" style="color: var(--ink-soft);">
+      <button type="button" class="prev-btn btn-outline px-3 py-1.5 rounded-md">&larr; Prev</button>
+      <span class="page-info"></span>
+      <button type="button" class="next-btn btn-outline px-3 py-1.5 rounded-md">Next &rarr;</button>
+    </div>
+  </div>
+
+
+  <!-- ===================== Interns ===================== -->
+  <div id="tab-interns" class="tab-panel py-8 grid lg:grid-cols-5 gap-6" style="display:none;">
+    <div class="lg:col-span-2">
+      <h2 class="font-display font-bold text-lg">Add intern</h2>
+      <form method="POST" action="{{ url_for('create_user') }}" class="card p-5 mt-4 space-y-3">
+        <input type="hidden" name="role" value="intern">
+        {% include "_user_fields.html" %}
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Create intern account</button>
+      </form>
+    </div>
+    <div class="lg:col-span-3">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+        <h2 class="font-display font-bold text-lg">All interns</h2>
+        <div class="flex gap-2 flex-wrap w-full sm:w-auto">
+          <select class="manager-filter px-3 py-2 rounded-md border text-sm" data-scope="interns-list" style="border-color: var(--border);">
+            <option value="">All managers</option>
+            {% for a in admins %}
+            <option value="{{ a.id }}">{{ a.full_name }}</option>
+            {% endfor %}
+            <option value="unassigned">Unassigned</option>
+          </select>
+          <input type="search" class="user-search px-3 py-2 rounded-md border text-sm flex-1 sm:w-56" data-scope="interns-list" placeholder="Search interns…" style="border-color: var(--border);">
+        </div>
+      </div>
+      <div id="interns-list" class="card divide-y" style="border-color: var(--border);">
+        {% for u in users if u.role == 'intern' %}
+          {% include "_user_row.html" %}
         {% else %}
-            <div class="stat-value" style="font-size: 1.2rem;">No data yet</div>
-        {% endif %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No interns yet.</p>
+        {% endfor %}
+      </div>
+      <div id="interns-pagination" class="flex items-center justify-between mt-4 text-xs" style="color: var(--ink-soft);">
+        <button type="button" class="prev-btn btn-outline px-3 py-1.5 rounded-md">&larr; Prev</button>
+        <span class="page-info"></span>
+        <button type="button" class="next-btn btn-outline px-3 py-1.5 rounded-md">Next &rarr;</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Data Visualization -->
-    <div class="card col-4">
-        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">User Breakdown</h3>
-        <div style="position: relative; height: 220px; width: 100%;">
-            <canvas id="donutChart"></canvas>
-        </div>
+  <!-- ===================== Campus Ambassadors ===================== -->
+  <div id="tab-ambassadors" class="tab-panel py-8 grid lg:grid-cols-5 gap-6" style="display:none;">
+    <div class="lg:col-span-2">
+      <h2 class="font-display font-bold text-lg">Add Campus Ambassador</h2>
+      <form method="POST" action="{{ url_for('create_user') }}" class="card p-5 mt-4 space-y-3">
+        <input type="hidden" name="role" value="ambassador">
+        {% include "_user_fields.html" %}
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Create ambassador account</button>
+      </form>
     </div>
+    <div class="lg:col-span-3">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+        <h2 class="font-display font-bold text-lg">All Campus Ambassadors</h2>
+        <div class="flex gap-2 flex-wrap w-full sm:w-auto">
+          <select class="manager-filter px-3 py-2 rounded-md border text-sm" data-scope="ambassadors-list" style="border-color: var(--border);">
+            <option value="">All managers</option>
+            {% for a in admins %}
+            <option value="{{ a.id }}">{{ a.full_name }}</option>
+            {% endfor %}
+            <option value="unassigned">Unassigned</option>
+          </select>
+          <input type="search" class="user-search px-3 py-2 rounded-md border text-sm flex-1 sm:w-56" data-scope="ambassadors-list" placeholder="Search ambassadors…" style="border-color: var(--border);">
+        </div>
+      </div>
+      <div id="ambassadors-list" class="card divide-y" style="border-color: var(--border);">
+        {% for u in users if u.role == 'ambassador' %}
+          {% include "_user_row.html" %}
+        {% else %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No Campus Ambassadors yet.</p>
+        {% endfor %}
+      </div>
+      <div id="ambassadors-pagination" class="flex items-center justify-between mt-4 text-xs" style="color: var(--ink-soft);">
+        <button type="button" class="prev-btn btn-outline px-3 py-1.5 rounded-md">&larr; Prev</button>
+        <span class="page-info"></span>
+        <button type="button" class="next-btn btn-outline px-3 py-1.5 rounded-md">Next &rarr;</button>
+      </div>
+    </div>
+  </div>
 
-    <div class="card col-8">
-        <h3 class="card-title" style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-dark);">Funding Trends</h3>
-        <div style="position: relative; height: 220px; width: 100%;">
-            <canvas id="areaChart"></canvas>
+  <!-- ===================== Admins ===================== -->
+  <div id="tab-admins" class="tab-panel py-8 grid lg:grid-cols-5 gap-6" style="display:none;">
+    <div class="lg:col-span-2">
+      <h2 class="font-display font-bold text-lg">Create admin account</h2>
+      <form method="POST" action="{{ url_for('create_user') }}" class="card p-5 mt-4 space-y-3">
+        <input type="hidden" name="role" value="admin">
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Full name</label>
+          <input type="text" name="full_name" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
         </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Username</label>
+          <input type="text" name="username" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Temporary password</label>
+          <input type="text" name="password" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Email</label>
+          <input type="email" name="email" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Phone (optional)</label>
+          <input type="text" name="phone" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Create admin account</button>
+      </form>
     </div>
+    <div class="lg:col-span-3">
+      <h2 class="font-display font-bold text-lg">All admins</h2>
+      <div class="card mt-4 divide-y" style="border-color: var(--border);">
+        {% for a in admins %}
+        <div class="card-row px-5 py-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-3">
+              <span class="avatar h-9 w-9 text-xs" style="background: {{ a.full_name|avatar_color }};">{{ a.full_name|initials }}</span>
+              <div>
+                <p class="font-medium text-sm">{{ a.full_name }}</p>
+                <p class="text-xs" style="color: var(--ink-soft);">@{{ a.username }}{% if a.email %} &middot; {{ a.email }}{% endif %}</p>
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button type="button" onclick="document.getElementById('admin-edit-{{ a.id }}').classList.toggle('hidden')" class="btn-outline px-2.5 py-1 rounded-md text-xs">Edit</button>
+              <form method="POST" action="{{ url_for('delete_user', user_id=a.id) }}" onsubmit="return confirm('Delete admin {{ a.full_name }}? This cannot be undone.');">
+                <button type="submit" class="btn-danger-outline px-2.5 py-1 rounded-md text-xs">Delete</button>
+              </form>
+            </div>
+          </div>
+          <form id="admin-edit-{{ a.id }}" method="POST" action="{{ url_for('edit_user', user_id=a.id) }}" class="hidden mt-3 space-y-2 border-t pt-3" style="border-color: var(--border);">
+            <div class="grid sm:grid-cols-2 gap-2">
+              <input type="text" name="full_name" value="{{ a.full_name }}" required placeholder="Full name" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+              <input type="email" name="email" value="{{ a.email or '' }}" required placeholder="Email" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            </div>
+            <div class="grid sm:grid-cols-2 gap-2">
+              <input type="text" name="phone" value="{{ a.phone or '' }}" placeholder="Phone" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+              <input type="text" name="new_password" placeholder="New password (leave blank to keep current)" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            </div>
+            <button type="submit" class="btn-primary w-full py-2 rounded-md text-xs">Save changes</button>
+          </form>
+        </div>
+        {% else %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No admin accounts yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 
-    <!-- User Table -->
-    <div class="card col-12">
-        <div class="card-header"><h3 class="card-title" style="font-size: 0.95rem; color: var(--text-dark);">User Directory</h3></div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Role</th>
-                        <th>Total Raised</th>
-                        <th>Reporting Head</th>
-                        <th style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in interns + ambassadors %}
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--bg-app); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary);">
-                                    {{ user.full_name[0] }}
-                                </div>
-                                <div>
-                                    <div style="font-weight: 700; color: var(--text-dark);">{{ user.full_name }}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">@{{ user.username }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="badge badge-{% if user.role == 'intern' %}intern{% else %}ambassador{% endif %}">{{ user.role }}</span></td>
-                        <td style="color: var(--primary); font-weight: 800;">₹{{ user.total_raised }}</td>
-                        <td style="color: var(--text-main);">{{ user.head_name }}</td>
-                        <td style="text-align: right;">
-                            <a href="/admin/users/edit/{{ user.id }}" style="color: var(--text-muted); margin-right: 12px;" title="Edit"><i class="ph ph-pencil-simple" style="font-size: 1.2rem;"></i></a>
-                            <a href="/admin/users/delete/{{ user.id }}" onclick="return confirm('Are you sure you want to delete this user?');" style="color: #ef4444;" title="Delete"><i class="ph ph-trash" style="font-size: 1.2rem;"></i></a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+  <!-- ===================== Missions ===================== -->
+  <div id="tab-missions" class="tab-panel py-8 grid lg:grid-cols-5 gap-6" style="display:none;">
+    <div class="lg:col-span-2">
+      <h2 class="font-display font-bold text-lg">Publish new mission</h2>
+      <form method="POST" action="{{ url_for('create_task') }}" class="card p-5 mt-4 space-y-3">
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Title</label>
+          <input type="text" name="title" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
         </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Description</label>
+          <textarea name="description" rows="3" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Deadline</label>
+          <input type="date" name="deadline" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Publish to all volunteers</button>
+      </form>
     </div>
+    <div class="lg:col-span-3">
+      <h2 class="font-display font-bold text-lg">Active missions</h2>
+      <div class="card mt-4 divide-y" style="border-color: var(--border);">
+        {% for t in tasks %}
+        <div class="card-row px-5 py-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="font-medium text-sm">{{ t.title }}</p>
+                {% if t.deadline and t.deadline < now.date() %}<span class="badge badge-overdue">Overdue</span>{% endif %}
+              </div>
+              <p class="text-xs mt-1" style="color: var(--ink-soft);">{{ t.description }}</p>
+              {% if t.deadline %}<p class="text-xs mt-1" style="color: var(--ink-soft);">Due {{ t.deadline }}</p>{% endif %}
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button type="button" onclick="document.getElementById('task-edit-{{ t.id }}').classList.toggle('hidden')" class="btn-outline px-2.5 py-1 rounded-md text-xs">Edit</button>
+              <form method="POST" action="{{ url_for('delete_task', task_id=t.id) }}" onsubmit="return confirm('Delete this mission? This also removes everyone\'s completion records for it.');">
+                <button type="submit" class="btn-danger-outline px-2.5 py-1 rounded-md text-xs">Delete</button>
+              </form>
+            </div>
+          </div>
+          <form id="task-edit-{{ t.id }}" method="POST" action="{{ url_for('edit_task', task_id=t.id) }}" class="hidden mt-3 space-y-2 border-t pt-3" style="border-color: var(--border);">
+            <input type="text" name="title" value="{{ t.title }}" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            <textarea name="description" rows="2" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">{{ t.description or '' }}</textarea>
+            <input type="date" name="deadline" value="{{ t.deadline or '' }}" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            <button type="submit" class="btn-primary w-full py-2 rounded-md text-xs">Save changes</button>
+          </form>
+        </div>
+        {% else %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No missions published yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Resources ===================== -->
+  <div id="tab-resources" class="tab-panel py-8 grid lg:grid-cols-5 gap-6" style="display:none;">
+    <div class="lg:col-span-2">
+      <h2 class="font-display font-bold text-lg">Add resource</h2>
+      <form method="POST" action="{{ url_for('create_resource') }}" class="card p-5 mt-4 space-y-3">
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Title</label>
+          <input type="text" name="title" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Category</label>
+          <input type="text" name="category" required placeholder="Pitch Deck / Branding / Social Media" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Link</label>
+          <input type="url" name="link" required placeholder="https://drive.google.com/..." class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Add to library</button>
+      </form>
+    </div>
+    <div class="lg:col-span-3">
+      <h2 class="font-display font-bold text-lg">Resource library</h2>
+      <div class="card mt-4 divide-y" style="border-color: var(--border);">
+        {% for r in resources %}
+        <div class="card-row px-5 py-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-[10px] uppercase font-semibold" style="color: var(--accent);">{{ r.category }}</p>
+              <p class="font-medium text-sm mt-0.5">{{ r.title }}</p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <a href="{{ r.link }}" target="_blank" rel="noopener" class="text-xs underline self-center" style="color: var(--accent);">Open</a>
+              <button type="button" onclick="document.getElementById('res-edit-{{ r.id }}').classList.toggle('hidden')" class="btn-outline px-2.5 py-1 rounded-md text-xs">Edit</button>
+              <form method="POST" action="{{ url_for('delete_resource', resource_id=r.id) }}" onsubmit="return confirm('Delete this resource?');">
+                <button type="submit" class="btn-danger-outline px-2.5 py-1 rounded-md text-xs">Delete</button>
+              </form>
+            </div>
+          </div>
+          <form id="res-edit-{{ r.id }}" method="POST" action="{{ url_for('edit_resource', resource_id=r.id) }}" class="hidden mt-3 space-y-2 border-t pt-3" style="border-color: var(--border);">
+            <input type="text" name="title" value="{{ r.title }}" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            <input type="text" name="category" value="{{ r.category }}" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            <input type="url" name="link" value="{{ r.link }}" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            <button type="submit" class="btn-primary w-full py-2 rounded-md text-xs">Save changes</button>
+          </form>
+        </div>
+        {% else %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No resources added yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Campaign Goals ===================== -->
+  <div id="tab-campaigns" class="tab-panel py-8 grid lg:grid-cols-5 gap-6" style="display:none;">
+    <div class="lg:col-span-2">
+      <h2 class="font-display font-bold text-lg">Create campaign goal</h2>
+      <form method="POST" action="{{ url_for('create_campaign') }}" class="card p-5 mt-4 space-y-3">
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Title</label>
+          <input type="text" name="title" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Target amount (INR)</label>
+          <input type="number" name="target_amount" min="1" step="1" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Start date</label>
+            <input type="date" name="start_date" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+          </div>
+          <div>
+            <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">End date</label>
+            <input type="date" name="end_date" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Create campaign</button>
+      </form>
+    </div>
+    <div class="lg:col-span-3">
+      <h2 class="font-display font-bold text-lg">All campaign goals</h2>
+      <div class="card mt-4 divide-y" style="border-color: var(--border);">
+        {% for c in campaigns %}
+        <div class="card-row px-5 py-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="font-medium text-sm">{{ c.title }}</p>
+                {% if c.is_active %}<span class="badge badge-approved">Active</span>{% endif %}
+              </div>
+              <p class="text-xs mt-1" style="color: var(--ink-soft);">
+                {{ c.raised|inr }} of {{ c.target_amount|inr }} &middot; {{ "%.0f"|format(c.progress_pct) }}%
+                {% if c.start_date or c.end_date %} &middot; {{ c.start_date or "—" }} to {{ c.end_date or "ongoing" }}{% endif %}
+              </p>
+              <div class="progress-track mt-2 max-w-sm">
+                <div class="progress-fill" style="width: {{ c.progress_pct }}%;"></div>
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button type="button" onclick="document.getElementById('campaign-edit-{{ c.id }}').classList.toggle('hidden')" class="btn-outline px-2.5 py-1 rounded-md text-xs">Edit</button>
+              <form method="POST" action="{{ url_for('delete_campaign', campaign_id=c.id) }}" onsubmit="return confirm('Delete this campaign goal?');">
+                <button type="submit" class="btn-danger-outline px-2.5 py-1 rounded-md text-xs">Delete</button>
+              </form>
+            </div>
+          </div>
+          <form id="campaign-edit-{{ c.id }}" method="POST" action="{{ url_for('edit_campaign', campaign_id=c.id) }}" class="hidden mt-3 space-y-2 border-t pt-3" style="border-color: var(--border);">
+            <input type="text" name="title" value="{{ c.title }}" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            <input type="number" name="target_amount" value="{{ c.target_amount|int }}" min="1" step="1" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="date" name="start_date" value="{{ c.start_date or '' }}" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+              <input type="date" name="end_date" value="{{ c.end_date or '' }}" class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+            </div>
+            <button type="submit" class="btn-primary w-full py-2 rounded-md text-xs">Save changes</button>
+          </form>
+        </div>
+        {% else %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No campaign goals created yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Announcements ===================== -->
+  <div id="tab-announcements" class="tab-panel py-8 grid lg:grid-cols-5 gap-6" style="display:none;">
+    <div class="lg:col-span-2">
+      <h2 class="font-display font-bold text-lg">Post announcement</h2>
+      <form method="POST" action="{{ url_for('create_announcement') }}" class="card p-5 mt-4 space-y-3">
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Title</label>
+          <input type="text" name="title" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color: var(--ink-soft);">Message</label>
+          <textarea name="message" rows="4" required class="w-full px-3 py-2 rounded-md border text-sm" style="border-color: var(--border);"></textarea>
+        </div>
+        <button type="submit" class="btn-primary w-full py-2.5 rounded-md text-sm">Post to all volunteers</button>
+      </form>
+    </div>
+    <div class="lg:col-span-3">
+      <h2 class="font-display font-bold text-lg">Posted announcements</h2>
+      <div class="card mt-4 divide-y" style="border-color: var(--border);">
+        {% for a in announcements %}
+        <div class="card-row px-5 py-4 flex items-start justify-between gap-3">
+          <div>
+            <p class="font-medium text-sm">{{ a.title }}</p>
+            <p class="text-sm mt-1" style="color: var(--ink-soft);">{{ a.message }}</p>
+            <p class="text-xs mt-2" style="color: var(--ink-soft);">Posted {{ a.created_at }}</p>
+          </div>
+          <form method="POST" action="{{ url_for('delete_announcement', announcement_id=a.id) }}" onsubmit="return confirm('Remove this announcement?');" class="shrink-0">
+            <button type="submit" class="btn-danger-outline px-2.5 py-1 rounded-md text-xs">Delete</button>
+          </form>
+        </div>
+        {% else %}
+        <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No announcements posted yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Leaderboard ===================== -->
+  <div id="tab-leaderboard" class="tab-panel py-8" style="display:none;">
+    <h2 class="font-display font-bold text-lg">Org-wide leaderboard</h2>
+    <div class="card mt-4 divide-y max-w-2xl" style="border-color: var(--border);">
+      {% for row in admin_leaderboard %}
+      <div class="card-row px-5 py-4 flex items-center gap-4">
+        <span class="font-display font-extrabold text-lg w-6 text-center" style="color: var(--accent);">{{ loop.index }}</span>
+        <span class="avatar h-9 w-9 text-xs" style="background: {{ row.full_name|avatar_color }};">{{ row.full_name|initials }}</span>
+        <div class="flex-1">
+          <p class="font-medium text-sm">{{ row.full_name }}</p>
+          <p class="text-xs capitalize" style="color: var(--ink-soft);">{{ row.role }}</p>
+        </div>
+        <span class="font-display font-bold">{{ row.total|inr }}</span>
+      </div>
+      {% else %}
+      <p class="px-5 py-8 text-sm text-center" style="color: var(--ink-soft);">No verified donations yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    new Chart(document.getElementById('donutChart').getContext('2d'), {
-        type: 'doughnut',
-        data: { labels: ['Interns', 'Ambassadors'], datasets: [{ data: [{{ interns|length }}, {{ ambassadors|length }}], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 0, cutout: '72%' }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { family: 'Inter', weight: 600 } } } } }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).style.display = '';
     });
+  });
 
-    const ctx = document.getElementById('areaChart').getContext('2d');
-    let gradient = ctx.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, 'rgba(5, 150, 105, 0.2)'); 
-    gradient.addColorStop(1, 'rgba(5, 150, 105, 0)');
-    
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [{% for user in leaderboard[:8] %}'{{ user.full_name.split()[0] }}',{% endfor %}],
-            datasets: [{ data: [{% for user in leaderboard[:8] %}{{ user.total_raised }},{% endfor %}], borderColor: '#059669', backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { border: { dash: [4, 4] }, grid: { color: 'rgba(0,0,0,0.04)' } } } }
+  // Generic paginated + filterable list controller
+  function initPaginatedList({ rows, controlsId, pageSize, matchFn }) {
+    const controls = document.getElementById(controlsId);
+    const prevBtn = controls.querySelector('.prev-btn');
+    const nextBtn = controls.querySelector('.next-btn');
+    const pageInfo = controls.querySelector('.page-info');
+    let page = 1;
+
+    function render() {
+      const matches = matchFn ? rows.filter(matchFn) : rows;
+      const totalPages = Math.max(1, Math.ceil(matches.length / pageSize));
+      if (page > totalPages) page = totalPages;
+      rows.forEach(r => { r.style.display = 'none'; });
+      const start = (page - 1) * pageSize;
+      matches.slice(start, start + pageSize).forEach(r => { r.style.display = ''; });
+      pageInfo.textContent = matches.length === 0
+        ? 'No results'
+        : `Page ${page} of ${totalPages} (${matches.length} total)`;
+      prevBtn.disabled = page <= 1;
+      nextBtn.disabled = page >= totalPages;
+      prevBtn.style.opacity = prevBtn.disabled ? '0.5' : '1';
+      nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
+    }
+
+    prevBtn.addEventListener('click', () => { page--; render(); });
+    nextBtn.addEventListener('click', () => { page++; render(); });
+    render();
+    return { refresh: () => { page = 1; render(); } };
+  }
+
+  // Donation search + status filter + pagination
+  const donationSearch = document.getElementById('donation-search');
+  const statusButtons = document.querySelectorAll('.status-filter-btn');
+  let activeStatus = 'all';
+  const donationRows = Array.from(document.querySelectorAll('.donation-row'));
+
+  const donationList = initPaginatedList({
+    rows: donationRows,
+    controlsId: 'donations-pagination',
+    pageSize: 8,
+    matchFn: row => {
+      const q = (donationSearch.value || '').trim().toLowerCase();
+      const matchesSearch = row.dataset.search.includes(q);
+      const matchesStatus = activeStatus === 'all' || row.dataset.status === activeStatus;
+      return matchesSearch && matchesStatus;
+    },
+  });
+  if (donationSearch) {
+    donationSearch.addEventListener('input', () => donationList.refresh());
+    statusButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        statusButtons.forEach(b => b.classList.remove('active-filter'));
+        btn.classList.add('active-filter');
+        activeStatus = btn.dataset.status;
+        donationList.refresh();
+      });
     });
-});
+  }
+
+  // Interns / Campus Ambassadors search + manager filter + pagination
+  document.querySelectorAll('.user-search').forEach(input => {
+    const scope = document.getElementById(input.dataset.scope);
+    const rows = Array.from(scope.querySelectorAll('.user-row'));
+    const paginationId = input.dataset.scope === 'interns-list' ? 'interns-pagination' : 'ambassadors-pagination';
+    const managerSelect = document.querySelector('.manager-filter[data-scope="' + input.dataset.scope + '"]');
+
+    const list = initPaginatedList({
+      rows,
+      controlsId: paginationId,
+      pageSize: 6,
+      matchFn: row => {
+        const matchesSearch = row.dataset.search.includes(input.value.trim().toLowerCase());
+        let matchesManager = true;
+        if (managerSelect && managerSelect.value === 'unassigned') {
+          matchesManager = row.dataset.manager === '';
+        } else if (managerSelect && managerSelect.value) {
+          matchesManager = row.dataset.manager === managerSelect.value;
+        }
+        return matchesSearch && matchesManager;
+      },
+    });
+    input.addEventListener('input', () => list.refresh());
+    if (managerSelect) managerSelect.addEventListener('change', () => list.refresh());
+  });
 </script>
 {% endblock %}
